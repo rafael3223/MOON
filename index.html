@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>PROJECT: XENO-PURGE // DOOM 1993 SCI-FI OUTPOST</title>
+  <title>PROJECT: XENO-PURGE // DOOM SCI-FI OUTPOST - HORDE SURVIVAL</title>
   <style>
     /* ==========================================================================
        ESTILOS GERAIS E TEMA RETRO SCI-FI (DOOM 1993 / ALIEN)
@@ -135,6 +135,7 @@
       padding: 6px 14px;
       min-width: 105px;
       box-shadow: inset 0 0 12px rgba(0,0,0,0.85);
+      cursor: pointer;
     }
 
     .hud-label {
@@ -238,8 +239,27 @@
       pointer-events: none;
     }
 
+    /* Mensagem de alerta de Horda / Transição */
+    #waveAlert {
+      position: absolute;
+      top: 28%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Impact', 'Arial Black', sans-serif;
+      font-size: clamp(28px, 4.5vw, 52px);
+      letter-spacing: 3px;
+      color: #ffcc00;
+      text-shadow: 0 0 20px rgba(255, 204, 0, 0.9), 2px 2px 0px #442200;
+      z-index: 24;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
     /* ==========================================================================
-       TELAS MODAIS (MENU INICIAL, VITÓRIA, GAME OVER)
+       TELAS MODAIS (MENU INICIAL, DERROTA)
        ========================================================================== */
     .screen-modal {
       position: absolute;
@@ -247,7 +267,7 @@
       left: 0;
       width: 100%;
       height: 100%;
-      background: rgba(2, 4, 7, 0.92);
+      background: rgba(2, 4, 7, 0.94);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -290,7 +310,7 @@
       border-radius: 6px;
       padding: 18px 24px;
       margin-bottom: 24px;
-      max-width: 590px;
+      max-width: 620px;
       text-align: left;
       font-size: 13.5px;
       color: #b5ceee;
@@ -378,16 +398,19 @@
   <!-- Mira Central -->
   <div id="crosshair"></div>
 
+  <!-- Alerta Central de Horda / Transição -->
+  <div id="waveAlert">HORDA 1 INICIADA</div>
+
   <!-- Radar no Canto Superior Direito -->
   <div id="radarContainer">
     <canvas id="radarCanvas" width="124" height="124"></canvas>
     <div class="radar-sweep"></div>
   </div>
 
-  <!-- Banner do Objetivo da Missão -->
+  <!-- Banner do Protocolo de Sobrevivência -->
   <div id="missionBanner">
-    [BASE ESTELAR OMEGA-9]<br>
-    OBJETIVO: <span id="missionText" style="color: #00ff88;">PURGAR TODAS AS ENTIDADES XENOMORFAS</span>
+    [ESTAÇÃO ESPACIAL OMEGA-9 // SOBREVIVÊNCIA]<br>
+    STATUS: <span id="missionText" style="color: #00ff88;">HORDA 1 // SOBREVIVA AO ATAQUE XENOMORFO</span>
   </div>
 
   <!-- Prompt de Trava de Mouse -->
@@ -405,7 +428,7 @@
 
     <div class="hud-box">
       <div class="hud-label">MUNIÇÃO</div>
-      <div class="hud-value" id="hudAmmo">65</div>
+      <div class="hud-value" id="hudAmmo">120</div>
     </div>
 
     <!-- Rosto do Space Marine com reações dinâmicas -->
@@ -413,9 +436,16 @@
       <canvas id="faceCanvas" width="32" height="32"></canvas>
     </div>
 
+    <!-- Horda Atual (Substitui o antigo contador de inimigos restantes) -->
     <div class="hud-box">
-      <div class="hud-label">INIMIGOS</div>
-      <div class="hud-value" id="hudKills">12</div>
+      <div class="hud-label">HORDA</div>
+      <div class="hud-value" id="hudWave" style="color: #ffcc00; text-shadow: 0 0 10px rgba(255,204,0,0.8);">1</div>
+    </div>
+
+    <!-- Arma Selecionada -->
+    <div class="hud-box" id="btnSwitchWeapon" title="Clique ou pressione [1] / [2] ou [Q] para trocar de arma">
+      <div class="hud-label">ARMA [1 / 2]</div>
+      <div class="hud-value" id="hudWeapon" style="font-size: 15px; color: #00e5ff; letter-spacing: 0px;">MAG [SEMI]</div>
     </div>
 
     <div class="hud-box">
@@ -429,23 +459,23 @@
   <div id="startScreen" class="screen-modal">
     <h1 class="modal-title">PROJECT: XENO-PURGE</h1>
     <div class="modal-subtitle">
-      ESTAÇÃO DE PESQUISA ESPACIAL PHOBOS-VI // ANO 2147<br>
-      Sinal de socorro ativado: infecção biológica alienígena detectada em todos os setores.
+      POSTO AVANÇADO OMEGA-9 // MODO SOBREVIVÊNCIA DE HORDAS<br>
+      A infecção xenomorfa espalhou-se por todos os setores. Eles virão em ondas contínuas e cada vez maiores!
     </div>
 
     <div class="info-card">
-      <h4>// PROTOCOLOS DE COMBATE (CONTROLES)</h4>
-      • <span class="key-badge">W</span> <span class="key-badge">S</span>: Mover para frente / trás.<br>
-      • <span class="key-badge">A</span> <span class="key-badge">D</span>: Strafe lateral (passo para esquerda / direita).<br>
-      • <span class="key-badge">Q</span> <span class="key-badge">E</span> ou <span class="key-badge">SETAS</span>: Girar câmera (ou use o Mouse).<br>
-      • <span class="key-badge">MOUSE</span>: Olhar em 360° com captura de mira.<br>
-      • <span class="key-badge">CLIQUE ESQUERDO</span> ou <span class="key-badge">ESPAÇO</span>: Disparar Blaster de Plasma.<br>
-      • <span class="key-badge">M</span>: Ativar / Silenciar efeitos sonoros.<br>
-      • <span class="key-badge">ESC</span>: Liberar ponteiro do mouse.<br><br>
-      <em>Colete células de energia azul (+munição) e kits médicos (+vida). Extermine todos os xenomorfos da estação para vencer a missão!</em>
+      <h4>// ARSENAL E PROTOCOLOS DE COMBATE</h4>
+      • <span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span>: Movimentação tática e strafe lateral.<br>
+      • <span class="key-badge">MOUSE</span>: Mirar 360° em tempo real.<br>
+      • <span class="key-badge">1</span> ou <span class="key-badge">2</span> / <span class="key-badge">Q</span> / <span class="key-badge">RODA MOUSE</span>: Trocar de arma.<br>
+      &nbsp;&nbsp;▸ <strong>[1] CANHÃO MAGNÉTICO</strong>: Semi-automático, dano massivo (1 tiro por clique, recuo pesado).<br>
+      &nbsp;&nbsp;▸ <strong>[2] FUZIL DE PLASMA</strong>: Automático contínuo, alta cadência de fogo (dano moderado).<br>
+      • <span class="key-badge">CLIQUE ESQUERDO</span> ou <span class="key-badge">ESPAÇO</span>: Disparar arma ativa.<br>
+      • <span class="key-badge">M</span>: Ativar / Silenciar áudio | <span class="key-badge">ESC</span>: Liberar cursor.<br><br>
+      <em>Colete baterias de plasma azul (+munição) e kits médicos (+vida) espalhados pela base. Sobreviva o máximo de hordas que puder!</em>
     </div>
 
-    <button id="btnStartMission" class="btn-action">INICIAR MISSÃO</button>
+    <button id="btnStartMission" class="btn-action">INICIAR SOBREVIVÊNCIA</button>
   </div>
 
   <!-- 2. Tela de Game Over (Derrota) -->
@@ -453,57 +483,40 @@
     <h1 class="modal-title defeat">SINAL BIOMÉTRICO PERDIDO</h1>
     <div class="modal-subtitle">
       SUA ARMA SILENCIOU-SE NAS PROFUNDEZAS DO POSTO AVANÇADO.<br>
-      A HORDA XENOMORFA CONSUMIU A ESTAÇÃO.
+      A HORDA XENOMORFA CONSUMIU A ESTAÇÃO ESPACIAL.
     </div>
 
     <div class="info-card" id="defeatStats">
-      // RELATÓRIO DO ENCONTRO:<br>
-      • Inimigos neutralizados: <span id="statKillsDefeat" style="color: #ff4444; font-weight: bold;">0</span><br>
-      • Tempo de sobrevivência: <span id="statTimeDefeat" style="color: #fff; font-weight: bold;">0s</span>
+      <h4 style="color: #ff4444;">// RELATÓRIO FINAL DE SOBREVIVÊNCIA:</h4>
+      • <strong>Tempo de sobrevivência:</strong> <span id="statTimeDefeat" style="color: #00ff88; font-size: 16px; font-weight: bold;">00:00</span><br>
+      • <strong>Monstros eliminados:</strong> <span id="statKillsDefeat" style="color: #ff4444; font-size: 16px; font-weight: bold;">0</span><br>
+      • <strong>Horda alcançada:</strong> <span id="statWaveDefeat" style="color: #ffcc00; font-size: 16px; font-weight: bold;">HORDA 1</span><br>
+      • <strong>Pontuação final:</strong> <span id="statScoreDefeat" style="color: #ffffff; font-weight: bold;">0</span>
     </div>
 
-    <button id="btnRestartMission" class="btn-action btn-danger">REINICIAR OPERAÇÃO</button>
-  </div>
-
-  <!-- 3. Tela de Vitória -->
-  <div id="victoryScreen" class="screen-modal hidden">
-    <h1 class="modal-title">SETOR PURGADO // VITÓRIA!</h1>
-    <div class="modal-subtitle">
-      TODAS AS AMEAÇAS ALIENÍGENAS FORAM EXTERMINADAS COM SUCESSO.<br>
-      A BASE ESPACIAL ESTÁ SEGURA PARA A EQUIPE DE EXTRAÇÃO.
-    </div>
-
-    <div class="info-card" id="victoryStats">
-      <h4>// DADOS DA MISSÃO</h4>
-      • Tempo total da operação: <span id="statTimeWin" style="color: #00ff88; font-weight: bold;">00:00</span><br>
-      • Aliens eliminados: <span id="statKillsWin" style="color: #00ff88; font-weight: bold;">12 / 12 (100%)</span><br>
-      • Disparos efetuados: <span id="statShotsWin" style="color: #fff; font-weight: bold;">0</span><br>
-      • Pontuação final: <span id="statScoreWin" style="color: #ffcc00; font-weight: bold;">0</span>
-    </div>
-
-    <button id="btnPlayAgain" class="btn-action">JOGAR NOVAMENTE</button>
+    <button id="btnRestartMission" class="btn-action btn-danger">TENTAR NOVAMENTE</button>
   </div>
 </div>
 
+
 <script>
 /* ==========================================================================
-   MOTOR DE JOGO COMPLETO - RAYCASTING SCI-FI RETRO 1993 (VANILLA JAVASCRIPT)
+   MOTOR DE JOGO - RAYCASTING SCI-FI RETRO 1993 // HORDE SURVIVAL ENGINE
    ========================================================================== */
 
-// Configuração do Renderizador e Resolução Interna
 const CONFIG = {
-  viewWidth: 480,       // Resolução de renderização interna horizontal
-  viewHeight: 300,      // Resolução interna vertical (visual clássico 90s)
-  fov: 66 * Math.PI / 180, // Campo de visão (Field of View)
-  texSize: 64,          // Tamanho das texturas procedurais (64x64)
-  moveSpeed: 3.6,       // Velocidade de deslocamento do jogador
+  viewWidth: 480,       // Resolução de renderização horizontal interna
+  viewHeight: 300,      // Resolução de renderização vertical interna
+  fov: 66 * Math.PI / 180,
+  texSize: 64,
+  moveSpeed: 3.8,       // Velocidade de deslocamento do jogador
   rotSpeed: 3.0,        // Velocidade de rotação via teclado
   mouseSensitivity: 0.0022,
-  maxFogDist: 14.0      // Distância de escuridão profunda (fog sci-fi)
+  maxFogDist: 18.0      // Distância de escuridão profunda (fog sci-fi estendido para mapa maior)
 };
 
 // ==========================================================================
-// 1. SISTEMA DE ÁUDIO SINTETIZADO (WEB AUDIO API - 100% OFFLINE / PROCEDURAL)
+// 1. SISTEMA DE ÁUDIO SINTETIZADO (WEB AUDIO API - 100% OFFLINE)
 // ==========================================================================
 class SoundFX {
   constructor() {
@@ -531,7 +544,7 @@ class SoundFX {
       const filter = this.ctx.createBiquadFilter();
 
       this.droneOsc.type = 'sawtooth';
-      this.droneOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // 55Hz (Lá grave)
+      this.droneOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // 55Hz (grave contínuo)
 
       filter.type = 'lowpass';
       filter.frequency.setValueAtTime(140, this.ctx.currentTime);
@@ -548,43 +561,115 @@ class SoundFX {
     }
   }
 
-  playLaser() {
+  // --- SONS DE ARMAS NOVAS ---
+  // Arma 1: Canhão Magnético Gauss (Impacto pesado e descarga potente)
+  playHeavyCannon() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    
+    // Sub-bass thump
+    const subOsc = this.ctx.createOscillator();
+    const subGain = this.ctx.createGain();
+    subOsc.type = 'sine';
+    subOsc.frequency.setValueAtTime(180, now);
+    subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.28);
+    subGain.gain.setValueAtTime(0.65, now);
+    subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.32);
+    subOsc.connect(subGain);
+    subGain.connect(this.ctx.destination);
+    subOsc.start(now);
+    subOsc.stop(now + 0.33);
+
+    // Eletro-magnético discharge
+    const zapOsc = this.ctx.createOscillator();
+    const zapGain = this.ctx.createGain();
+    zapOsc.type = 'sawtooth';
+    zapOsc.frequency.setValueAtTime(1400, now);
+    zapOsc.frequency.exponentialRampToValueAtTime(70, now + 0.22);
+    zapGain.gain.setValueAtTime(0.35, now);
+    zapGain.gain.linearRampToValueAtTime(0.01, now + 0.22);
+    zapOsc.connect(zapGain);
+    zapGain.connect(this.ctx.destination);
+    zapOsc.start(now);
+    zapOsc.stop(now + 0.23);
+  }
+
+  // Arma 2: Fuzil de Plasma Vulcan (Pulsos rápidos de alta cadência)
+  playRapidPlasma() {
     if (!this.ctx || this.muted) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(920, now);
-    osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+    osc.frequency.setValueAtTime(960, now);
+    osc.frequency.exponentialRampToValueAtTime(260, now + 0.08);
 
-    gain.gain.setValueAtTime(0.22, now);
-    gain.gain.linearRampToValueAtTime(0.01, now + 0.14);
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
     osc.start(now);
-    osc.stop(now + 0.15);
+    osc.stop(now + 0.09);
   }
 
-  playAlienAlert() {
+  // Sons de Alerta de Hordas
+  playWaveStart() {
     if (!this.ctx || this.muted) return;
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
 
     osc.type = 'sawtooth';
-    osc.frequency.setValueAtTime(220, now);
-    osc.frequency.linearRampToValueAtTime(540, now + 0.12);
-    osc.frequency.linearRampToValueAtTime(180, now + 0.28);
+    osc.frequency.setValueAtTime(110, now);
+    osc.frequency.linearRampToValueAtTime(220, now + 0.35);
+    osc.frequency.linearRampToValueAtTime(90, now + 0.7);
 
-    gain.gain.setValueAtTime(0.18, now);
-    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.75);
 
     osc.connect(gain);
     gain.connect(this.ctx.destination);
 
+    osc.start(now);
+    osc.stop(now + 0.76);
+  }
+
+  playWaveCleared() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const freqs = [330, 440, 554, 659];
+    freqs.forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const start = now + idx * 0.12;
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, start);
+      gain.gain.setValueAtTime(0.25, start);
+      gain.gain.linearRampToValueAtTime(0.01, start + 0.3);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.32);
+    });
+  }
+
+  // --- SONS DE INIMIGOS ---
+  playAlienAlert() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(220, now);
+    osc.frequency.linearRampToValueAtTime(540, now + 0.12);
+    osc.frequency.linearRampToValueAtTime(180, now + 0.28);
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
     osc.start(now);
     osc.stop(now + 0.3);
   }
@@ -594,17 +679,13 @@ class SoundFX {
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-
     osc.type = 'triangle';
     osc.frequency.setValueAtTime(320, now);
     osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
-
     gain.gain.setValueAtTime(0.3, now);
     gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
-
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-
     osc.start(now);
     osc.stop(now + 0.2);
   }
@@ -614,17 +695,13 @@ class SoundFX {
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-
     osc.type = 'sawtooth';
     osc.frequency.setValueAtTime(160, now);
     osc.frequency.exponentialRampToValueAtTime(40, now + 0.45);
-
     gain.gain.setValueAtTime(0.35, now);
     gain.gain.linearRampToValueAtTime(0.01, now + 0.45);
-
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-
     osc.start(now);
     osc.stop(now + 0.46);
   }
@@ -634,57 +711,16 @@ class SoundFX {
     const now = this.ctx.currentTime;
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
-
     osc.type = 'square';
     osc.frequency.setValueAtTime(180, now);
     osc.frequency.exponentialRampToValueAtTime(450, now + 0.08);
     osc.frequency.exponentialRampToValueAtTime(90, now + 0.2);
-
     gain.gain.setValueAtTime(0.22, now);
     gain.gain.linearRampToValueAtTime(0.01, now + 0.22);
-
     osc.connect(gain);
     gain.connect(this.ctx.destination);
-
     osc.start(now);
     osc.stop(now + 0.22);
-  }
-
-  playPlayerHurt() {
-    if (!this.ctx || this.muted) return;
-    const now = this.ctx.currentTime;
-    const osc = this.ctx.createOscillator();
-    const gain = this.ctx.createGain();
-
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(120, now);
-    osc.frequency.exponentialRampToValueAtTime(40, now + 0.22);
-
-    gain.gain.setValueAtTime(0.4, now);
-    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-
-    osc.connect(gain);
-    gain.connect(this.ctx.destination);
-
-    osc.start(now);
-    osc.stop(now + 0.25);
-  }
-
-  playPickup() {
-    if (!this.ctx || this.muted) return;
-    const now = this.ctx.currentTime;
-    [440, 554, 659].forEach((freq, i) => {
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, now + i * 0.07);
-      gain.gain.setValueAtTime(0.2, now + i * 0.07);
-      gain.gain.linearRampToValueAtTime(0.01, now + i * 0.07 + 0.1);
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      osc.start(now + i * 0.07);
-      osc.stop(now + i * 0.07 + 0.11);
-    });
   }
 
   playBruteAlert() {
@@ -753,21 +789,104 @@ class SoundFX {
     osc.stop(now + 0.16);
   }
 
-  playWinFanfare() {
+  // Novo Inimigo: Crawler (Sibilante e rastejante voraz)
+  playCrawlerAlert() {
     if (!this.ctx || this.muted) return;
-    const notes = [261.6, 329.6, 392.0, 523.2];
-    notes.forEach((freq, idx) => {
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(620, now);
+    osc.frequency.linearRampToValueAtTime(890, now + 0.1);
+    osc.frequency.exponentialRampToValueAtTime(210, now + 0.26);
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.28);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.29);
+  }
+
+  playCrawlerAttack() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(340, now);
+    osc.frequency.exponentialRampToValueAtTime(95, now + 0.18);
+    gain.gain.setValueAtTime(0.28, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.21);
+  }
+
+  // Novo Inimigo: Ravager (Cyborg Xenomorfo mecânico)
+  playRavagerAlert() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.linearRampToValueAtTime(340, now + 0.15);
+    osc.frequency.linearRampToValueAtTime(110, now + 0.35);
+    gain.gain.setValueAtTime(0.32, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.38);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.39);
+  }
+
+  playRavagerAttack() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(450, now);
+    osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
+    gain.gain.setValueAtTime(0.36, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.26);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.27);
+  }
+
+  playPlayerHurt() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(120, now);
+    osc.frequency.exponentialRampToValueAtTime(40, now + 0.22);
+    gain.gain.setValueAtTime(0.4, now);
+    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(now);
+    osc.stop(now + 0.25);
+  }
+
+  playPickup() {
+    if (!this.ctx || this.muted) return;
+    const now = this.ctx.currentTime;
+    [440, 554, 659].forEach((freq, i) => {
       const osc = this.ctx.createOscillator();
       const gain = this.ctx.createGain();
-      const start = this.ctx.currentTime + idx * 0.15;
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, start);
-      gain.gain.setValueAtTime(0.3, start);
-      gain.gain.linearRampToValueAtTime(0.01, start + 0.35);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.07);
+      gain.gain.setValueAtTime(0.2, now + i * 0.07);
+      gain.gain.linearRampToValueAtTime(0.01, now + i * 0.07 + 0.1);
       osc.connect(gain);
       gain.connect(this.ctx.destination);
-      osc.start(start);
-      osc.stop(start + 0.36);
+      osc.start(now + i * 0.07);
+      osc.stop(now + i * 0.07 + 0.11);
     });
   }
 }
@@ -791,11 +910,10 @@ class TextureFactory {
     return c;
   }
 
-  // Cria versões com 3 níveis de luz/distância para iluminação perfeita
   createLightVariations(srcCanvas) {
     const variations = [srcCanvas]; // 0: Normal / Brilhante
     
-    // Nível 1: Médio (distância intermediária)
+    // Nível 1: Médio
     const cMed = this.createCanvas(srcCanvas.width, srcCanvas.height);
     const ctxMed = cMed.getContext('2d');
     ctxMed.drawImage(srcCanvas, 0, 0);
@@ -804,7 +922,7 @@ class TextureFactory {
     ctxMed.fillRect(0, 0, srcCanvas.width, srcCanvas.height);
     variations.push(cMed);
 
-    // Nível 2: Escuro (distância distante / sombras)
+    // Nível 2: Escuro
     const cDark = this.createCanvas(srcCanvas.width, srcCanvas.height);
     const ctxDark = cDark.getContext('2d');
     ctxDark.drawImage(srcCanvas, 0, 0);
@@ -825,27 +943,43 @@ class TextureFactory {
     this.textures[5] = this.generateAirlockDoor();
     this.textures[6] = this.generateSpaceWindow();
 
-    // Sprites com variações de luz
+    // 1. Stalker
     this.sprites['stalker_walk0'] = this.createLightVariations(this.drawStalkerSprite(0));
     this.sprites['stalker_walk1'] = this.createLightVariations(this.drawStalkerSprite(1));
     this.sprites['stalker_hurt']  = this.createLightVariations(this.drawStalkerHurt());
     this.sprites['stalker_dead']  = this.createLightVariations(this.drawStalkerDead());
 
+    // 2. Spitter
     this.sprites['spitter_walk0'] = this.createLightVariations(this.drawSpitterSprite(0));
     this.sprites['spitter_walk1'] = this.createLightVariations(this.drawSpitterSprite(1));
     this.sprites['spitter_hurt']  = this.createLightVariations(this.drawSpitterHurt());
     this.sprites['spitter_dead']  = this.createLightVariations(this.drawSpitterDead());
 
+    // 3. Brute
     this.sprites['brute_walk0']   = this.createLightVariations(this.drawBruteSprite(0));
     this.sprites['brute_walk1']   = this.createLightVariations(this.drawBruteSprite(1));
     this.sprites['brute_hurt']    = this.createLightVariations(this.drawBruteHurt());
     this.sprites['brute_dead']    = this.createLightVariations(this.drawBruteDead());
 
+    // 4. Phantom
     this.sprites['phantom_walk0'] = this.createLightVariations(this.drawPhantomSprite(0));
     this.sprites['phantom_walk1'] = this.createLightVariations(this.drawPhantomSprite(1));
     this.sprites['phantom_hurt']  = this.createLightVariations(this.drawPhantomHurt());
     this.sprites['phantom_dead']  = this.createLightVariations(this.drawPhantomDead());
 
+    // 5. NOVO: Crawler (Bio-Mutante Rastejante Radioativo)
+    this.sprites['crawler_walk0'] = this.createLightVariations(this.drawCrawlerSprite(0));
+    this.sprites['crawler_walk1'] = this.createLightVariations(this.drawCrawlerSprite(1));
+    this.sprites['crawler_hurt']  = this.createLightVariations(this.drawCrawlerHurt());
+    this.sprites['crawler_dead']  = this.createLightVariations(this.drawCrawlerDead());
+
+    // 6. NOVO: Ravager (Cyborg Xenomorfo / Destruidor Mecanizado)
+    this.sprites['ravager_walk0'] = this.createLightVariations(this.drawRavagerSprite(0));
+    this.sprites['ravager_walk1'] = this.createLightVariations(this.drawRavagerSprite(1));
+    this.sprites['ravager_hurt']  = this.createLightVariations(this.drawRavagerHurt());
+    this.sprites['ravager_dead']  = this.createLightVariations(this.drawRavagerDead());
+
+    // Pickups
     this.sprites['pickup_ammo']   = this.createLightVariations(this.drawPickupAmmo());
     this.sprites['pickup_health'] = this.createLightVariations(this.drawPickupHealth());
   }
@@ -888,7 +1022,6 @@ class TextureFactory {
     ctx.fillStyle = '#1a2028';
     ctx.fillRect(0, 0, 64, 64);
 
-    // Monitor de fósforo verde
     ctx.fillStyle = '#06160d';
     ctx.fillRect(8, 8, 48, 26);
     ctx.strokeStyle = '#00ff66';
@@ -900,7 +1033,6 @@ class TextureFactory {
       const len = 10 + ((y * 17) % 32);
       ctx.fillRect(10, y, len, 2);
     }
-    // Gráfico de dados
     ctx.strokeStyle = '#33ffff';
     ctx.beginPath();
     for (let x = 32; x < 52; x += 2) {
@@ -909,14 +1041,12 @@ class TextureFactory {
     }
     ctx.stroke();
 
-    // LEDs luminosos
     const ledColors = ['#ff3333', '#33ff33', '#ffcc00', '#00e5ff'];
     for (let i = 0; i < 4; i++) {
       ctx.fillStyle = ledColors[i];
       ctx.fillRect(10 + i * 12, 42, 6, 6);
     }
 
-    // Teclado
     ctx.fillStyle = '#10141a';
     ctx.fillRect(8, 52, 48, 8);
     ctx.fillStyle = '#3a4a60';
@@ -956,7 +1086,6 @@ class TextureFactory {
     ctx.fillStyle = '#130a1c';
     ctx.fillRect(0, 0, 64, 64);
 
-    // Tentáculos
     ctx.strokeStyle = '#621a52';
     ctx.lineWidth = 4;
     ctx.beginPath();
@@ -964,7 +1093,6 @@ class TextureFactory {
     ctx.moveTo(10, 64); ctx.bezierCurveTo(30, 40, 20, 20, 50, 0);
     ctx.stroke();
 
-    // Bolsas bioluminescentes
     const pods = [[18, 22, 6], [44, 18, 8], [32, 48, 7], [14, 52, 5], [52, 46, 6]];
     pods.forEach(([px, py, pr]) => {
       const grad = ctx.createRadialGradient(px, py, 1, px, py, pr);
@@ -1036,35 +1164,31 @@ class TextureFactory {
     return c;
   }
 
-  // --- SPRITES PROCEDURAIS (PIXEL ART RETRO 1993) ---
+  // --- SPRITES PROCEDURAIS (PIXEL ART) ---
+  // Stalker
   drawStalkerSprite(frame = 0) {
     const c = this.createCanvas();
     const ctx = c.getContext('2d');
     const legOffset = frame === 0 ? 0 : 3;
 
-    // Cabeça biomecânica
     ctx.fillStyle = '#220826';
     ctx.fillRect(20, 8, 24, 16);
     ctx.fillStyle = '#481350';
     ctx.fillRect(22, 10, 20, 12);
 
-    // Olhos vermelhos brilhantes
     ctx.fillStyle = '#ff1133';
     ctx.fillRect(24, 14, 4, 3);
     ctx.fillRect(36, 14, 4, 3);
 
-    // Mandíbulas / Fangs
     ctx.fillStyle = '#eeeeee';
     ctx.fillRect(26, 21, 3, 4);
     ctx.fillRect(35, 21, 3, 4);
 
-    // Tronco quitinoso
     ctx.fillStyle = '#1c0820';
     ctx.fillRect(24, 24, 16, 20);
     ctx.fillStyle = '#6b1c78';
     ctx.fillRect(26, 26, 12, 14);
 
-    // Garras / Mantis blades
     ctx.fillStyle = '#0e0410';
     ctx.fillRect(14, 20 - legOffset, 6, 18);
     ctx.fillRect(44, 20 + legOffset, 6, 18);
@@ -1072,7 +1196,6 @@ class TextureFactory {
     ctx.fillRect(15, 34 - legOffset, 4, 8);
     ctx.fillRect(45, 34 + legOffset, 4, 8);
 
-    // Pernas
     ctx.fillStyle = '#140618';
     ctx.fillRect(20, 44, 8, 18 - legOffset);
     ctx.fillRect(36, 44, 8, 18 + legOffset);
@@ -1096,17 +1219,17 @@ class TextureFactory {
     ctx.fillRect(8, 48, 48, 14);
     ctx.fillStyle = '#551566';
     ctx.fillRect(16, 44, 32, 8);
-    ctx.fillStyle = '#00ff44'; // Sangue alienígena verde
+    ctx.fillStyle = '#00ff44';
     ctx.fillRect(14, 54, 36, 6);
     return c;
   }
 
+  // Spitter
   drawSpitterSprite(frame = 0) {
     const c = this.createCanvas();
     const ctx = c.getContext('2d');
     const throatPulse = frame === 0 ? 0 : 2;
 
-    // Cabeça com saco de veneno verde
     ctx.fillStyle = '#0a2212';
     ctx.fillRect(18, 6, 28, 20);
 
@@ -1117,24 +1240,20 @@ class TextureFactory {
     ctx.fillStyle = grad;
     ctx.fillRect(22, 8, 20 + throatPulse, 16);
 
-    // Olhos cianos
     ctx.fillStyle = '#00ffff';
     ctx.fillRect(20, 12, 4, 4);
     ctx.fillRect(40, 12, 4, 4);
 
-    // Bocarra ácida
     ctx.fillStyle = '#111';
     ctx.fillRect(27, 20, 10, 6);
     ctx.fillStyle = '#66ff00';
     ctx.fillRect(29, 23, 6, 5);
 
-    // Corpo de réptil xenomorfo
     ctx.fillStyle = '#081c10';
     ctx.fillRect(22, 26, 20, 20);
     ctx.fillStyle = '#195c2b';
     ctx.fillRect(25, 28, 14, 14);
 
-    // Pernas rastejantes
     ctx.fillStyle = '#06140b';
     ctx.fillRect(12, 38 + throatPulse, 10, 22);
     ctx.fillRect(42, 38 - throatPulse, 10, 22);
@@ -1156,59 +1275,22 @@ class TextureFactory {
     const ctx = c.getContext('2d');
     ctx.fillStyle = '#051608';
     ctx.fillRect(6, 48, 52, 14);
-    ctx.fillStyle = '#33cc33'; // Poça de ácido
+    ctx.fillStyle = '#33cc33';
     ctx.fillRect(10, 52, 44, 8);
     return c;
   }
 
-  drawPickupAmmo() {
-    const c = this.createCanvas();
-    const ctx = c.getContext('2d');
-    // Bateria de plasma sci-fi
-    ctx.fillStyle = '#0a1a28';
-    ctx.fillRect(16, 18, 32, 32);
-    ctx.strokeStyle = '#324a66';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(16, 18, 32, 32);
-
-    // Núcleo brilhante de energia azul
-    ctx.fillStyle = '#00e5ff';
-    ctx.fillRect(22, 24, 20, 20);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(28, 28, 8, 12);
-    return c;
-  }
-
-  drawPickupHealth() {
-    const c = this.createCanvas();
-    const ctx = c.getContext('2d');
-    // Kit médico branco com cruz vermelha
-    ctx.fillStyle = '#dbe5f0';
-    ctx.fillRect(14, 18, 36, 30);
-    ctx.strokeStyle = '#4a5b6e';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(14, 18, 36, 30);
-
-    // Cruz vermelha central
-    ctx.fillStyle = '#ff2222';
-    ctx.fillRect(28, 22, 8, 22);
-    ctx.fillRect(21, 29, 22, 8);
-    return c;
-  }
-
-  // --- BRUTE (TITÃ XENOMORFO BLINDADO) ---
+  // Brute
   drawBruteSprite(frame = 0) {
     const c = this.createCanvas();
     const ctx = c.getContext('2d');
     const step = frame === 0 ? 0 : 2;
 
-    // Placas de carapaça reforçada e ombros titânicos
     ctx.fillStyle = '#1a080c';
     ctx.fillRect(8, 12, 48, 22);
     ctx.fillStyle = '#45101b';
     ctx.fillRect(12, 14, 40, 18);
 
-    // Chifres / Espinhos de carapaça
     ctx.fillStyle = '#0f0507';
     ctx.fillRect(10, 4, 6, 12);
     ctx.fillRect(48, 4, 6, 12);
@@ -1216,7 +1298,6 @@ class TextureFactory {
     ctx.fillRect(12, 6, 3, 8);
     ctx.fillRect(49, 6, 3, 8);
 
-    // Núcleo incandescente e olhos de lava
     ctx.fillStyle = '#ff4400';
     ctx.fillRect(24, 18, 5, 4);
     ctx.fillRect(35, 18, 5, 4);
@@ -1224,14 +1305,12 @@ class TextureFactory {
     ctx.fillRect(25, 19, 3, 2);
     ctx.fillRect(36, 19, 3, 2);
 
-    // Peitoral blindado com ranhuras brilhantes
     ctx.fillStyle = '#2a0910';
     ctx.fillRect(16, 26, 32, 20);
     ctx.fillStyle = '#ff3300';
     ctx.fillRect(22, 30, 20, 2);
     ctx.fillRect(24, 34, 16, 2);
 
-    // Braços pesados com punhos esmagadores
     ctx.fillStyle = '#18060a';
     ctx.fillRect(4, 20 - step, 12, 26);
     ctx.fillRect(48, 20 + step, 12, 26);
@@ -1239,7 +1318,6 @@ class TextureFactory {
     ctx.fillRect(6, 36 - step, 8, 12);
     ctx.fillRect(50, 36 + step, 8, 12);
 
-    // Pernas grossas e pesadas
     ctx.fillStyle = '#120407';
     ctx.fillRect(14, 46, 14, 16 - step);
     ctx.fillRect(36, 46, 14, 16 + step);
@@ -1263,24 +1341,22 @@ class TextureFactory {
     ctx.fillRect(4, 44, 56, 18);
     ctx.fillStyle = '#5c101a';
     ctx.fillRect(10, 40, 44, 10);
-    ctx.fillStyle = '#ff5500'; // Ichor de lava denso
+    ctx.fillStyle = '#ff5500';
     ctx.fillRect(8, 54, 48, 8);
     return c;
   }
 
-  // --- PHANTOM (ESPECTRO / XENOMORFO FURTIVO) ---
+  // Phantom
   drawPhantomSprite(frame = 0) {
     const c = this.createCanvas();
     const ctx = c.getContext('2d');
     const phase = frame === 0 ? 0 : 3;
 
-    // Silhueta esguia e espectral
     ctx.fillStyle = '#120420';
     ctx.fillRect(22, 6, 20, 18);
     ctx.fillStyle = '#350a58';
     ctx.fillRect(24, 8, 16, 14);
 
-    // Olhos cianos e fenda psíquica brilhante
     ctx.fillStyle = '#00ffff';
     ctx.fillRect(26, 12, 4, 3);
     ctx.fillRect(34, 12, 4, 3);
@@ -1288,13 +1364,11 @@ class TextureFactory {
     ctx.fillRect(27, 13, 2, 1);
     ctx.fillRect(35, 13, 2, 1);
 
-    // Tronco e tentáculos de fumaça
     ctx.fillStyle = '#1b0630';
     ctx.fillRect(24, 20, 16, 22);
     ctx.fillStyle = '#6b1cb0';
     ctx.fillRect(26, 22, 12, 16);
 
-    // Lâminas de energia / Garras de fase
     ctx.fillStyle = '#00ffff';
     ctx.fillRect(10, 18 - phase, 4, 28);
     ctx.fillRect(50, 18 + phase, 4, 28);
@@ -1302,7 +1376,6 @@ class TextureFactory {
     ctx.fillRect(14, 22 - phase, 6, 20);
     ctx.fillRect(44, 22 + phase, 6, 20);
 
-    // Cauda espectral ondulante
     ctx.fillStyle = '#0f031b';
     ctx.fillRect(24, 42, 16, 18 + phase);
     ctx.fillStyle = '#4a127a';
@@ -1327,8 +1400,181 @@ class TextureFactory {
     ctx.fillRect(10, 50, 44, 12);
     ctx.fillStyle = '#7a1dbd';
     ctx.fillRect(16, 46, 32, 8);
-    ctx.fillStyle = '#00ffff'; // Resíduo ectoplasmático
+    ctx.fillStyle = '#00ffff';
     ctx.fillRect(14, 54, 36, 6);
+    return c;
+  }
+
+  // NOVO 1: CRAWLER (Bio-Mutante Rastejante Radioativo)
+  drawCrawlerSprite(frame = 0) {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    const walk = frame === 0 ? 0 : 3;
+
+    // Corpo baixo e rastejante
+    ctx.fillStyle = '#261405';
+    ctx.fillRect(14, 28, 36, 18);
+    ctx.fillStyle = '#592e0b';
+    ctx.fillRect(18, 26, 28, 16);
+
+    // Bolsas de pus radioativo amarelo/laranja
+    const sacs = [[22, 24, 6], [32, 22, 7], [40, 25, 5]];
+    sacs.forEach(([sx, sy, sr]) => {
+      ctx.fillStyle = '#ffbb00';
+      ctx.beginPath();
+      ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(sx - 1, sy - 2, 3, 3);
+    });
+
+    // Olhos insectóides múltiplos vermelhos
+    ctx.fillStyle = '#ff0033';
+    ctx.fillRect(16, 32, 3, 3);
+    ctx.fillRect(19, 30, 2, 2);
+    ctx.fillRect(45, 32, 3, 3);
+    ctx.fillRect(43, 30, 2, 2);
+
+    // Presas venenosas ácidas
+    ctx.fillStyle = '#ddff33';
+    ctx.fillRect(27, 40, 3, 6);
+    ctx.fillRect(34, 40, 3, 6);
+
+    // Múltiplas patas articuladas rastejantes
+    ctx.fillStyle = '#1a0d03';
+    ctx.fillRect(6, 36 - walk, 10, 6);
+    ctx.fillRect(4, 42 - walk, 6, 16);
+
+    ctx.fillRect(48, 36 + walk, 10, 6);
+    ctx.fillRect(54, 42 + walk, 6, 16);
+
+    ctx.fillRect(12, 44 + walk, 8, 14);
+    ctx.fillRect(44, 44 - walk, 8, 14);
+    return c;
+  }
+
+  drawCrawlerHurt() {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(8, 20, 48, 40);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(18, 24, 28, 20);
+    return c;
+  }
+
+  drawCrawlerDead() {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#1c0a02';
+    ctx.fillRect(6, 48, 52, 14);
+    ctx.fillStyle = '#ffaa00'; // Poça radioativa borbulhante
+    ctx.fillRect(10, 52, 44, 8);
+    ctx.fillStyle = '#ffee66';
+    ctx.fillRect(18, 54, 8, 4);
+    ctx.fillRect(36, 54, 6, 4);
+    return c;
+  }
+
+  // NOVO 2: RAVAGER (Cyborg Xenomorfo / Destruidor Mecanizado)
+  drawRavagerSprite(frame = 0) {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    const mechStep = frame === 0 ? 0 : 2;
+
+    // Capacete biomecânico reforçado
+    ctx.fillStyle = '#1b222a';
+    ctx.fillRect(18, 6, 28, 18);
+    ctx.fillStyle = '#3a4b5c';
+    ctx.fillRect(20, 8, 24, 14);
+
+    // Visor laser vermelho de mira cibernética
+    ctx.fillStyle = '#ff1111';
+    ctx.fillRect(22, 12, 20, 4);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(30, 13, 6, 2);
+
+    // Placas de armadura torácica de titânio
+    ctx.fillStyle = '#141a22';
+    ctx.fillRect(16, 24, 32, 22);
+    ctx.fillStyle = '#2d3a48';
+    ctx.fillRect(20, 26, 24, 16);
+
+    // Tubos de energia vermelhos pulsantes no peito
+    ctx.fillStyle = '#ff3300';
+    ctx.fillRect(24, 30, 16, 3);
+    ctx.fillRect(26, 35, 12, 2);
+
+    // Braços cibernéticos com canhões duplos de plasma
+    ctx.fillStyle = '#0f141a';
+    ctx.fillRect(6, 18 - mechStep, 10, 26);
+    ctx.fillRect(48, 18 + mechStep, 10, 26);
+    ctx.fillStyle = '#ff2222';
+    ctx.fillRect(8, 42 - mechStep, 6, 8);
+    ctx.fillRect(50, 42 + mechStep, 6, 8);
+
+    // Pernas robóticas hidráulicas
+    ctx.fillStyle = '#181e26';
+    ctx.fillRect(18, 46, 10, 16 - mechStep);
+    ctx.fillRect(36, 46, 10, 16 + mechStep);
+    ctx.fillStyle = '#485d73';
+    ctx.fillRect(19, 58 - mechStep, 8, 4);
+    ctx.fillRect(37, 58 + mechStep, 8, 4);
+    return c;
+  }
+
+  drawRavagerHurt() {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ff3333';
+    ctx.fillRect(8, 4, 48, 58);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(18, 10, 28, 26);
+    return c;
+  }
+
+  drawRavagerDead() {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0f141a';
+    ctx.fillRect(6, 46, 52, 16);
+    ctx.fillStyle = '#3a4b5c';
+    ctx.fillRect(12, 42, 40, 10);
+    ctx.fillStyle = '#00e5ff'; // Faíscas e fluido azul sintético
+    ctx.fillRect(14, 52, 10, 4);
+    ctx.fillRect(38, 54, 12, 4);
+    return c;
+  }
+
+  // Pickups
+  drawPickupAmmo() {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0a1a28';
+    ctx.fillRect(16, 18, 32, 32);
+    ctx.strokeStyle = '#324a66';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(16, 18, 32, 32);
+
+    ctx.fillStyle = '#00e5ff';
+    ctx.fillRect(22, 24, 20, 20);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(28, 28, 8, 12);
+    return c;
+  }
+
+  drawPickupHealth() {
+    const c = this.createCanvas();
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#dbe5f0';
+    ctx.fillRect(14, 18, 36, 30);
+    ctx.strokeStyle = '#4a5b6e';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(14, 18, 36, 30);
+
+    ctx.fillStyle = '#ff2222';
+    ctx.fillRect(28, 22, 8, 22);
+    ctx.fillRect(21, 29, 22, 8);
     return c;
   }
 }
@@ -1336,52 +1582,86 @@ class TextureFactory {
 const textureFactory = new TextureFactory();
 
 // ==========================================================================
-// 3. MAPA 2D DA ESTAÇÃO ESPACIAL EXPANDIDA (GRID 36x36 // 6 SETORES)
+// 3. MAPA 2D DA ESTAÇÃO ESPACIAL EXPANDIDA (GRID 48x48 // 1378 ÁREAS LIVRES)
 // ==========================================================================
-// 0 = Vazio (Passagens livres / Corredores abertos sem portas)
+// 0 = Vazio (Passagens livres e corredores amplos)
 // 1 = Paredes de Aço / Casco Reforçado
 // 2 = Computadores / Terminais de Comando
+// 3 = Paredes Industriais Hazard
 // 4 = Ninho Alien / Bio-Infestação
-// 6 = Vigias com vista panorâmica para o Espaço
-const MAP = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,6,6,0,0,6,6,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-  [1,0,2,2,2,0,0,1,0,0,0,0,0,0,6,0,0,0,0,6,0,0,0,0,0,0,1,0,0,2,2,2,0,0,0,1],
-  [1,0,2,2,2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,2,2,2,0,0,0,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,6,0,0,0,0,6,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,6,6,0,0,6,6,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
-  [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-  [1,0,2,2,0,0,0,1,0,2,2,0,0,0,1,1,0,0,1,1,0,0,0,2,2,0,0,1,0,0,0,2,2,0,0,1],
-  [1,0,2,2,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-  [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,0,0,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,0,0,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,1,0,0,1,1,1,1,1,0,0,0,4,4,4,4,0,0,4,4,4,4,0,0,0,1,1,1,1,1,0,0,1,1,0,1],
-  [1,1,0,0,1,1,1,1,1,0,0,0,4,4,4,4,0,0,4,4,4,4,0,0,0,1,1,1,1,1,0,0,1,1,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,0,0,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,4,4,4,4,0,0,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-  [1,0,2,2,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,1],
-  [1,0,2,2,0,0,0,1,0,2,2,0,0,0,1,1,0,0,1,1,0,0,0,2,2,0,0,1,0,0,0,2,2,0,0,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,1,0,0,1,1,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-  [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,1,1,0,0,1,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,0,0,1,1,1,1,1,1,1,0,0,1,1,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-  [1,0,2,2,0,0,0,1,0,0,2,2,0,0,0,1,0,0,1,0,0,0,2,2,0,0,0,1,0,0,2,2,0,0,0,1],
-  [1,0,2,2,0,0,0,0,0,0,2,2,0,0,0,0,0,0,0,0,0,0,2,2,0,0,0,0,0,0,2,2,0,0,0,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-  [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-];
+// 6 = Vigias com vista panorâmica para o Espaço Profundo
+function generateMap48() {
+  const W = 48, H = 48;
+  const grid = [];
+  for (let y = 0; y < H; y++) {
+    grid.push(new Array(W).fill(1));
+  }
 
+  function carve(x1, y1, x2, y2, fill = 0) {
+    for (let y = y1; y <= y2; y++) {
+      for (let x = x1; x <= x2; x++) {
+        if (x > 0 && x < W - 1 && y > 0 && y < H - 1) {
+          grid[y][x] = fill;
+        }
+      }
+    }
+  }
+
+  // 1. Nexus Central
+  carve(18, 18, 29, 29, 0);
+  grid[21][21] = 2; grid[21][26] = 2;
+  grid[26][21] = 2; grid[26][26] = 2;
+
+  // 2. Corredores Principais em Cruz
+  carve(22, 2, 25, 45, 0);
+  carve(2, 22, 45, 25, 0);
+
+  // 3. Anel de Circulação Intermediário
+  carve(10, 10, 37, 12, 0);
+  carve(10, 35, 37, 37, 0);
+  carve(10, 10, 12, 37, 0);
+  carve(35, 10, 37, 37, 0);
+
+  // 4. Setor Noroeste: Laboratório & Pesquisa Médica
+  carve(3, 3, 16, 9, 0);
+  carve(3, 11, 9, 17, 0);
+  grid[5][6] = 2; grid[5][7] = 2; grid[5][8] = 2;
+  grid[7][6] = 2; grid[7][7] = 2; grid[7][8] = 2;
+  grid[13][5] = 2; grid[13][6] = 2;
+
+  // 5. Setor Nordeste: Hangar & Observatório Espacial
+  carve(31, 3, 44, 9, 0);
+  carve(38, 10, 44, 17, 0);
+  for (let wx = 33; wx <= 43; wx += 2) {
+    grid[1][wx] = 6;
+  }
+
+  // 6. Setor Sudoeste: Reator & Manutenção Industrial
+  carve(3, 38, 16, 44, 0);
+  carve(3, 30, 9, 37, 0);
+  for (let hy = 40; hy <= 42; hy++) {
+    grid[hy][8] = 3;
+    grid[hy][11] = 3;
+  }
+
+  // 7. Setor Sudeste: Ninho Alien & Bio-Contaminação
+  carve(31, 38, 44, 44, 0);
+  carve(38, 30, 44, 37, 0);
+  for (let by = 39; by <= 42; by++) {
+    grid[by][35] = 4;
+    grid[by][40] = 4;
+  }
+
+  // Corredores Perimetrais de Fuga / Kiting
+  carve(3, 2, 5, 45, 0);
+  carve(42, 2, 44, 45, 0);
+  carve(2, 3, 45, 5, 0);
+  carve(2, 42, 45, 44, 0);
+
+  return grid;
+}
+
+const MAP = generateMap48();
 const MAP_WIDTH = MAP[0].length;
 const MAP_HEIGHT = MAP.length;
 
@@ -1392,60 +1672,84 @@ function getMapCell(x, y) {
   return MAP[my][mx];
 }
 
-// Verificação de colisão segura em caixa delimitadora
+// Colisão do jogador contra paredes
 function canMoveTo(nx, ny) {
-  const r = 0.22;
+  const r = 0.24;
   return getMapCell(nx - r, ny - r) === 0 &&
          getMapCell(nx + r, ny - r) === 0 &&
          getMapCell(nx - r, ny + r) === 0 &&
          getMapCell(nx + r, ny + r) === 0;
 }
 
-// Linha de visão precisa para garantir que inimigos atrás de paredes nunca sejam vistos
+// ==========================================================================
+// CORREÇÃO DEFINITIVA DO BUG DE VER INIMIGOS E ITENS POR TRÁS DAS PAREDES:
+// Linha de Visão (Line of Sight) Estrita e Contínua de Alta Resolução
+// ==========================================================================
 function hasLineOfSight(x0, y0, x1, y1) {
   const dx = x1 - x0;
   const dy = y1 - y0;
   const dist = Math.hypot(dx, dy);
-  if (dist < 0.001) return true;
-  const steps = Math.max(12, Math.ceil(dist * 4.5));
+  if (dist < 0.1) return true;
+
+  // Amostragem sub-métrica contínua (mínimo 16 passos ou dist * 12)
+  // Como as células têm 1.0 de largura, é fisicamente impossível uma parede escapar do teste
+  const steps = Math.max(16, Math.ceil(dist * 12));
   for (let i = 1; i < steps; i++) {
     const px = x0 + dx * (i / steps);
     const py = y0 + dy * (i / steps);
-    if (getMapCell(px, py) !== 0) return false;
+    const mx = Math.floor(px);
+    const my = Math.floor(py);
+    if (mx < 0 || mx >= MAP_WIDTH || my < 0 || my >= MAP_HEIGHT) return false;
+    if (MAP[my][mx] > 0) return false; // Bloqueado por qualquer parede sólida!
   }
   return true;
 }
 
-// Validação visual completa da entidade (centro e extremidades) contra paredes
-function isEntityVisible(p, ent) {
-  if (hasLineOfSight(p.x, p.y, ent.x, ent.y)) return true;
-  const dx = ent.x - p.x;
-  const dy = ent.y - p.y;
-  const len = Math.hypot(dx, dy);
-  if (len < 0.15) return true;
-  const nx = -dy / len * 0.35;
-  const ny = dx / len * 0.35;
-  if (hasLineOfSight(p.x, p.y, ent.x + nx, ent.y + ny)) return true;
-  if (hasLineOfSight(p.x, p.y, ent.x - nx, ent.y - ny)) return true;
-  return false;
-}
+// ==========================================================================
+// 4. SISTEMA DAS DUAS NOVAS ARMAS DO JOGADOR
+// ==========================================================================
+// ARMA 1: Canhão Magnético (Semi-automática, alto dano, 1 tiro por clique)
+// ARMA 2: Fuzil de Plasma (Automática, dano menor por tiro, disparo contínuo)
+const WEAPONS = {
+  1: {
+    id: 1,
+    name: "CANHÃO MAGNÉTICO",
+    label: "MAG [SEMI]",
+    type: "SEMI",
+    damage: 95,          // Dano devastador
+    ammoCost: 2,         // Consome 2 células por disparo
+    fireCooldown: 0.38,  // Intervalo mínimo entre disparos
+    recoilAmount: 22,    // Recuo pesado na tela
+    isAutomatic: false
+  },
+  2: {
+    id: 2,
+    name: "FUZIL DE PLASMA",
+    label: "PULSE [AUTO]",
+    type: "AUTO",
+    damage: 22,          // Dano menor
+    ammoCost: 1,         // Consome 1 célula por disparo
+    fireCooldown: 0.095, // 10.5 disparos por segundo (tiro contínuo rápido)
+    recoilAmount: 8,     // Recuo leve vibratório
+    isAutomatic: true
+  }
+};
 
-// ==========================================================================
-// 4. ENTIDADES: JOGADOR, ALIENÍGENAS, PROJÉTEIS E PICKUPS
-// ==========================================================================
 const player = {
-  x: 2.0,
-  y: 1.5,
-  dirX: 1.0,
-  dirY: 0.0,
-  planeX: 0.0,
-  planeY: 0.66, // Determina FOV de ~66 graus
+  x: 23.5,              // Começa no centro do Nexus da estação espacial
+  y: 23.5,
+  dirX: 0.0,
+  dirY: -1.0,
+  planeX: 0.66,
+  planeY: 0.0,
   health: 100,
   maxHealth: 100,
-  ammo: 65,
+  ammo: 120,            // Munição total disponível
   score: 0,
   kills: 0,
   shotsFired: 0,
+  currentWeapon: 1,     // 1 = Canhão Magnético, 2 = Fuzil de Plasma
+  canShootSemi: true,   // Garante controle estrito do modo semi-automático
   weaponState: 'idle',
   weaponTimer: 0,
   fireCooldown: 0,
@@ -1458,36 +1762,209 @@ const player = {
 let entities = [];
 let particles = [];
 
+// ==========================================================================
+// 5. SISTEMA DE HORDAS ESTILO CALL OF DUTY ZOMBIES
+// ==========================================================================
+const hordeManager = {
+  currentWave: 1,
+  waveState: 'ACTIVE',         // 'ACTIVE', 'INTERMISSION'
+  intermissionTimer: 0,
+  totalWaveEnemies: 8,         // Total a spawnar na horda atual
+  enemiesSpawnedThisWave: 0,
+  maxSimultaneousEnemies: 14,   // Limite ativo no mapa para performance e combate intenso
+  spawnCooldown: 0,
+  
+  // 12 Ninhos / Portais de spawn distribuídos estrategicamente pela estação
+  spawnPoints: [
+    { x: 5.5, y: 5.5 },   { x: 6.5, y: 14.5 },
+    { x: 42.5, y: 5.5 },  { x: 35.5, y: 14.5 },
+    { x: 5.5, y: 42.5 },  { x: 6.5, y: 33.5 },
+    { x: 42.5, y: 42.5 }, { x: 35.5, y: 33.5 },
+    { x: 23.5, y: 4.5 },  { x: 23.5, y: 43.5 },
+    { x: 4.5, y: 23.5 },  { x: 43.5, y: 23.5 }
+  ],
+
+  startWave(waveNum) {
+    this.currentWave = waveNum;
+    this.waveState = 'ACTIVE';
+    // Fórmula crescente de hordas: a cada horda vem mais e mais inimigos!
+    this.totalWaveEnemies = 8 + (waveNum - 1) * 5;
+    this.enemiesSpawnedThisWave = 0;
+    this.spawnCooldown = 0.5;
+
+    sounds.playWaveStart();
+    showWaveAlert(`HORDA ${this.currentWave} INICIADA`);
+    updateHUD();
+
+    // Spawna suprimentos extras de emergência pelo mapa a cada nova horda
+    this.spawnSuppliesForWave();
+  },
+
+  spawnSuppliesForWave() {
+    const supplySpots = [
+      { x: 23.5, y: 19.5, type: 'ammo' },
+      { x: 23.5, y: 27.5, type: 'health' },
+      { x: 19.5, y: 23.5, type: 'ammo' },
+      { x: 27.5, y: 23.5, type: 'ammo' },
+      { x: 12.5, y: 11.5, type: 'ammo' },
+      { x: 36.5, y: 11.5, type: 'health' },
+      { x: 12.5, y: 36.5, type: 'health' },
+      { x: 36.5, y: 36.5, type: 'ammo' }
+    ];
+    // Adiciona alguns pickups aleatórios
+    const chosen = supplySpots.sort(() => Math.random() - 0.5).slice(0, 4);
+    chosen.forEach(s => {
+      entities.push(new Pickup(s.x, s.y, s.type));
+    });
+  },
+
+  update(dt) {
+    if (gameState !== 'PLAYING') return;
+
+    if (this.waveState === 'ACTIVE') {
+      const aliveAliens = entities.filter(e => e instanceof Alien && !e.isDead);
+
+      // Spawn contínuo de inimigos até atingir a cota da horda
+      if (this.enemiesSpawnedThisWave < this.totalWaveEnemies) {
+        this.spawnCooldown -= dt;
+        if (this.spawnCooldown <= 0 && aliveAliens.length < this.maxSimultaneousEnemies) {
+          this.spawnNextEnemy();
+          this.spawnCooldown = Math.max(0.7, 2.0 - (this.currentWave * 0.12));
+        }
+      } else if (aliveAliens.length === 0) {
+        // Todos os inimigos da horda foram exterminados!
+        this.onWaveCleared();
+      }
+    } else if (this.waveState === 'INTERMISSION') {
+      this.intermissionTimer -= dt;
+      const secLeft = Math.ceil(this.intermissionTimer);
+
+      const banner = document.getElementById('missionText');
+      if (banner) {
+        banner.textContent = `HORDA ${this.currentWave} SOBREVIVIDA! PRÓXIMA HORDA EM ${secLeft}s...`;
+        banner.style.color = '#ffcc00';
+      }
+
+      if (this.intermissionTimer <= 0) {
+        this.startWave(this.currentWave + 1);
+      }
+    }
+  },
+
+  spawnNextEnemy() {
+    // Escolhe um ponto de spawn longe do jogador ou fora de visão imediata
+    const candidateSpots = this.spawnPoints.filter(p => {
+      const d = Math.hypot(p.x - player.x, p.y - player.y);
+      return d > 9.0;
+    });
+
+    const chosen = candidateSpots.length > 0
+      ? candidateSpots[Math.floor(Math.random() * candidateSpots.length)]
+      : this.spawnPoints[Math.floor(Math.random() * this.spawnPoints.length)];
+
+    // Seleção de tipo de inimigo com base na horda
+    let type = 'stalker';
+    const roll = Math.random();
+
+    if (this.currentWave === 1) {
+      type = roll < 0.65 ? 'stalker' : 'crawler';
+    } else if (this.currentWave === 2) {
+      if (roll < 0.45) type = 'stalker';
+      else if (roll < 0.8) type = 'crawler';
+      else type = 'spitter';
+    } else if (this.currentWave === 3) {
+      if (roll < 0.35) type = 'stalker';
+      else if (roll < 0.65) type = 'crawler';
+      else if (roll < 0.85) type = 'spitter';
+      else type = 'phantom';
+    } else if (this.currentWave === 4) {
+      if (roll < 0.25) type = 'stalker';
+      else if (roll < 0.5) type = 'crawler';
+      else if (roll < 0.7) type = 'spitter';
+      else if (roll < 0.88) type = 'phantom';
+      else type = 'ravager';
+    } else {
+      // Hordas 5+: Todos os tipos de inimigos, incluindo Brutes e Ravagers!
+      if (roll < 0.2) type = 'stalker';
+      else if (roll < 0.4) type = 'crawler';
+      else if (roll < 0.6) type = 'spitter';
+      else if (roll < 0.78) type = 'phantom';
+      else if (roll < 0.92) type = 'ravager';
+      else type = 'brute';
+    }
+
+    entities.push(new Alien(chosen.x, chosen.y, type, this.currentWave));
+    this.enemiesSpawnedThisWave++;
+  },
+
+  onWaveCleared() {
+    this.waveState = 'INTERMISSION';
+    this.intermissionTimer = 5.5; // 5.5 segundos de intervalo entre hordas
+    sounds.playWaveCleared();
+    showWaveAlert(`HORDA ${this.currentWave} CONCLUÍDA!`);
+    updateHUD();
+  }
+};
+
+function showWaveAlert(text) {
+  const el = document.getElementById('waveAlert');
+  if (!el) return;
+  el.textContent = text;
+  el.style.opacity = '1';
+  setTimeout(() => {
+    if (el) el.style.opacity = '0';
+  }, 2200);
+}
+
+// ==========================================================================
+// 6. CLASSE ALIEN: 6 TIPOS COM MAIS VIDA E COMPORTAMENTOS ÚNICOS
+// ==========================================================================
 class Alien {
-  constructor(x, y, type = 'stalker') {
+  constructor(x, y, type = 'stalker', wave = 1) {
     this.x = x;
     this.y = y;
-    this.type = type; // 'stalker', 'spitter', 'brute', 'phantom'
+    this.type = type; // 'stalker', 'spitter', 'brute', 'phantom', 'crawler', 'ravager'
+    this.wave = wave;
+
+    // Ajuste de Vida e Atributos: muito mais resistentes e desafiadores!
+    const waveBonusHP = (wave - 1);
 
     if (type === 'stalker') {
-      this.health = 65;
-      this.speed = 2.3;
-      this.meleeDmg = 16;
-      this.dropRate = 0.55;
+      this.health = 140 + waveBonusHP * 20;
+      this.speed = 2.4;
+      this.meleeDmg = 18;
+      this.dropRate = 0.5;
     } else if (type === 'spitter') {
-      this.health = 85;
-      this.speed = 1.75;
-      this.meleeDmg = 12;
+      this.health = 160 + waveBonusHP * 25;
+      this.speed = 1.85;
+      this.meleeDmg = 14;
       this.dropRate = 0.65;
-    } else if (type === 'brute') {
-      this.health = 220;
-      this.speed = 1.35;
-      this.meleeDmg = 28;
-      this.dropRate = 0.90;
+    } else if (type === 'crawler') {
+      // NOVO: Muito rápido e agressivo
+      this.health = 110 + waveBonusHP * 15;
+      this.speed = 2.9;
+      this.meleeDmg = 16;
+      this.dropRate = 0.45;
     } else if (type === 'phantom') {
-      this.health = 45;
-      this.speed = 3.1;
-      this.meleeDmg = 20;
-      this.dropRate = 0.50;
+      this.health = 130 + waveBonusHP * 20;
+      this.speed = 3.2;
+      this.meleeDmg = 22;
+      this.dropRate = 0.55;
+    } else if (type === 'ravager') {
+      // NOVO: Cyborg Xenomorfo com blindagem e projéteis pesados
+      this.health = 340 + waveBonusHP * 45;
+      this.speed = 1.95;
+      this.meleeDmg = 26;
+      this.dropRate = 0.85;
+    } else if (type === 'brute') {
+      this.health = 500 + waveBonusHP * 60;
+      this.speed = 1.45;
+      this.meleeDmg = 34;
+      this.dropRate = 0.95;
     }
 
     this.maxHealth = this.health;
-    this.state = 'idle'; // idle, chase, attack, hurt, dead
+    this.state = 'idle'; // idle, chase, hurt, dead
     this.animTimer = Math.random() * 10;
     this.animFrame = 0;
     this.attackCooldown = 0;
@@ -1502,32 +1979,34 @@ class Alien {
       this.hurtTimer -= dt;
     }
 
-    this.animTimer += dt * 4;
+    this.animTimer += dt * 4.5;
     this.animFrame = Math.floor(this.animTimer) % 2;
 
     const dx = player.x - this.x;
     const dy = player.y - this.y;
     const dist = Math.hypot(dx, dy);
-    const hasSight = isEntityVisible(player, this);
+    const hasSight = hasLineOfSight(player.x, player.y, this.x, this.y);
 
     if (this.state === 'idle') {
-      if (hasSight && dist < 14.0) {
+      if ((hasSight && dist < 16.0) || dist < 7.0) {
         this.state = 'chase';
         if (this.type === 'brute') sounds.playBruteAlert();
         else if (this.type === 'phantom') sounds.playPhantomAlert();
+        else if (this.type === 'crawler') sounds.playCrawlerAlert();
+        else if (this.type === 'ravager') sounds.playRavagerAlert();
         else sounds.playAlienAlert();
       }
     } else if (this.state === 'chase') {
       if (this.attackCooldown > 0) this.attackCooldown -= dt;
 
-      // Velocidade dinâmica (Brute entra em fúria com menos da metade da vida)
+      // Velocidade dinâmica (Brute entra em frenesi com < 50% de HP)
       let currentSpeed = this.speed;
       if (this.type === 'brute' && this.health < this.maxHealth * 0.5) {
-        currentSpeed = 1.75;
+        currentSpeed = 2.1;
       }
 
-      // Perseguição com deslizamento suave
-      const minDistance = (this.type === 'stalker' || this.type === 'phantom') ? 0.95 : (this.type === 'brute' ? 1.15 : 4.5);
+      const minDistance = (this.type === 'spitter' || this.type === 'ravager') ? 4.2 : 0.95;
+
       if (dist > minDistance) {
         const moveStep = currentSpeed * dt;
         const moveX = (dx / dist) * moveStep;
@@ -1544,28 +2023,30 @@ class Alien {
         }
       }
 
-      // Ataques específicos por classe
-      if ((this.type === 'stalker' || this.type === 'phantom') && dist <= 1.2 && this.attackCooldown <= 0) {
+      // Ataques por tipo
+      if (dist <= 1.25 && this.attackCooldown <= 0) {
         this.attackPlayerMelee();
-      } else if (this.type === 'brute' && dist <= 1.35 && this.attackCooldown <= 0) {
-        this.attackPlayerMelee();
-      } else if (this.type === 'spitter' && dist <= 10.0 && hasSight && this.attackCooldown <= 0) {
-        this.attackPlayerRanged(dx, dy, dist);
+      } else if (this.type === 'spitter' && dist <= 11.0 && hasSight && this.attackCooldown <= 0) {
+        this.attackPlayerRangedSpitter(dx, dy, dist);
+      } else if (this.type === 'ravager' && dist <= 13.0 && hasSight && this.attackCooldown <= 0) {
+        this.attackPlayerRangedRavager(dx, dy, dist);
       }
     }
   }
 
-  checkLineOfSight(px, py) {
-    return isEntityVisible({ x: px, y: py }, this);
-  }
-
   attackPlayerMelee() {
     if (this.type === 'brute') {
-      this.attackCooldown = 1.2;
+      this.attackCooldown = 1.1;
       sounds.playBruteAttack();
     } else if (this.type === 'phantom') {
-      this.attackCooldown = 0.8;
+      this.attackCooldown = 0.75;
       sounds.playPhantomAttack();
+    } else if (this.type === 'crawler') {
+      this.attackCooldown = 0.7;
+      sounds.playCrawlerAttack();
+    } else if (this.type === 'ravager') {
+      this.attackCooldown = 0.9;
+      sounds.playRavagerAttack();
     } else {
       this.attackCooldown = 0.95;
       sounds.playAlienAttack();
@@ -1573,10 +2054,16 @@ class Alien {
     damagePlayer(this.meleeDmg);
   }
 
-  attackPlayerRanged(dx, dy, dist) {
-    this.attackCooldown = 1.9;
+  attackPlayerRangedSpitter(dx, dy, dist) {
+    this.attackCooldown = 1.8;
     sounds.playAlienAttack();
-    entities.push(new Projectile(this.x, this.y, dx / dist, dy / dist, false));
+    entities.push(new Projectile(this.x, this.y, dx / dist, dy / dist, false, '#33ff33', 14));
+  }
+
+  attackPlayerRangedRavager(dx, dy, dist) {
+    this.attackCooldown = 1.6;
+    sounds.playRavagerAttack();
+    entities.push(new Projectile(this.x, this.y, dx / dist, dy / dist, false, '#ff2222', 20));
   }
 
   takeDamage(amount) {
@@ -1585,10 +2072,14 @@ class Alien {
     this.hurtTimer = 0.16;
     sounds.playAlienHurt();
 
-    const sparkColor = this.type === 'brute' ? '#ff6600' : (this.type === 'phantom' ? '#00ffff' : '#00ff44');
-    spawnSparks(this.x, this.y, sparkColor, this.type === 'brute' ? 8 : 6);
+    let sparkColor = '#00ff44';
+    if (this.type === 'brute') sparkColor = '#ff6600';
+    else if (this.type === 'phantom') sparkColor = '#00ffff';
+    else if (this.type === 'crawler') sparkColor = '#ffcc00';
+    else if (this.type === 'ravager') sparkColor = '#ff2222';
 
-    // Se estiver idle e levar dano, entra em perseguição imediatamente
+    spawnSparks(this.x, this.y, sparkColor, 6);
+
     if (this.state === 'idle') {
       this.state = 'chase';
     }
@@ -1601,32 +2092,35 @@ class Alien {
 
       let reward = 100;
       if (this.type === 'spitter') reward = 150;
-      else if (this.type === 'phantom') reward = 200;
-      else if (this.type === 'brute') reward = 350;
+      else if (this.type === 'crawler') reward = 130;
+      else if (this.type === 'phantom') reward = 220;
+      else if (this.type === 'ravager') reward = 350;
+      else if (this.type === 'brute') reward = 500;
       player.score += reward;
 
       updateHUD();
 
-      // Chance de derrubar munição ou kit médico
+      // Chance de derrubar munição ou kit de cura
       if (Math.random() < this.dropRate) {
-        const itemType = Math.random() < 0.55 ? 'ammo' : 'health';
+        const itemType = Math.random() < 0.6 ? 'ammo' : 'health';
         entities.push(new Pickup(this.x, this.y, itemType));
       }
-
-      checkVictoryCondition();
     }
   }
 }
 
+// Projéteis (Jogador e Inimigos)
 class Projectile {
-  constructor(x, y, dirX, dirY, isPlayer = false) {
+  constructor(x, y, dirX, dirY, isPlayer = false, color = '#00e5ff', dmg = 15) {
     this.x = x;
     this.y = y;
     this.dirX = dirX;
     this.dirY = dirY;
     this.isPlayer = isPlayer;
-    this.speed = isPlayer ? 14.5 : 6.5;
-    this.life = 2.8;
+    this.color = color;
+    this.damage = dmg;
+    this.speed = isPlayer ? 16.0 : 7.2;
+    this.life = 2.5;
     this.isDead = false;
   }
 
@@ -1643,7 +2137,7 @@ class Projectile {
 
     if (getMapCell(nextX, nextY) !== 0) {
       this.isDead = true;
-      spawnSparks(this.x, this.y, this.isPlayer ? '#00e5ff' : '#00ff44', 5);
+      spawnSparks(this.x, this.y, this.color, 4);
       return;
     }
 
@@ -1651,15 +2145,16 @@ class Projectile {
     this.y = nextY;
 
     if (!this.isPlayer) {
-      if (Math.hypot(player.x - this.x, player.y - this.y) < 0.52) {
+      if (Math.hypot(player.x - this.x, player.y - this.y) < 0.55) {
         this.isDead = true;
-        damagePlayer(12);
-        spawnSparks(this.x, this.y, '#33ff33', 6);
+        damagePlayer(this.damage);
+        spawnSparks(this.x, this.y, this.color, 6);
       }
     }
   }
 }
 
+// Pickups (Munição e Kits Médicos)
 class Pickup {
   constructor(x, y, type = 'ammo') {
     this.x = x;
@@ -1673,16 +2168,16 @@ class Pickup {
     if (this.isDead) return;
     this.bob += dt * 3.5;
 
-    if (Math.hypot(player.x - this.x, player.y - this.y) < 0.6) {
+    if (Math.hypot(player.x - this.x, player.y - this.y) < 0.65) {
       if (this.type === 'ammo') {
-        player.ammo = Math.min(150, player.ammo + 25);
+        player.ammo = Math.min(250, player.ammo + 35);
         player.score += 25;
         sounds.playPickup();
         this.isDead = true;
         updateHUD();
       } else if (this.type === 'health') {
         if (player.health < player.maxHealth) {
-          player.health = Math.min(player.maxHealth, player.health + 30);
+          player.health = Math.min(player.maxHealth, player.health + 35);
           player.score += 25;
           sounds.playPickup();
           this.isDead = true;
@@ -1697,8 +2192,8 @@ function spawnSparks(x, y, color, count = 5) {
   for (let i = 0; i < count; i++) {
     particles.push({
       x, y,
-      vx: (Math.random() - 0.5) * 3,
-      vy: (Math.random() - 0.5) * 3,
+      vx: (Math.random() - 0.5) * 3.5,
+      vy: (Math.random() - 0.5) * 3.5,
       life: 0.2 + Math.random() * 0.25,
       color
     });
@@ -1728,7 +2223,7 @@ function damagePlayer(amount) {
 }
 
 // ==========================================================================
-// 5. RENDERIZADOR RAYCASTING DDA + Z-BUFFER
+// 7. RENDERIZADOR RAYCASTING DDA + Z-BUFFER COM OCLUSÃO RIGOROSA
 // ==========================================================================
 const canvas = document.getElementById('renderCanvas');
 const ctx = canvas.getContext('2d');
@@ -1751,7 +2246,7 @@ function renderScene() {
   ctx.fillStyle = floorGrad;
   ctx.fillRect(0, h / 2, w, h / 2);
 
-  // 2. RAYCASTING DAS PAREDES (DDA)
+  // 2. Raycasting das paredes (DDA estendido para 64 passos)
   for (let x = 0; x < w; x++) {
     const cameraX = 2 * x / w - 1;
     const rayDirX = player.dirX + player.planeX * cameraX;
@@ -1786,7 +2281,7 @@ function renderScene() {
     let side = 0;
     let stepsTaken = 0;
 
-    while (hit === 0 && stepsTaken < 40) {
+    while (hit === 0 && stepsTaken < 64) {
       if (sideDistX < sideDistY) {
         sideDistX += deltaDistX;
         mapX += stepX;
@@ -1841,13 +2336,11 @@ function renderScene() {
       x, drawStart, 1, drawEnd - drawStart
     );
 
-    // Sombra para paredes Norte/Sul (Wolf3D style)
     if (side === 1) {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.28)';
       ctx.fillRect(x, drawStart, 1, drawEnd - drawStart);
     }
 
-    // Fog sci-fi de profundidade
     const fog = Math.min(1.0, perpWallDist / CONFIG.maxFogDist);
     if (fog > 0.05) {
       ctx.fillStyle = `rgba(3, 5, 8, ${fog * 0.95})`;
@@ -1855,18 +2348,18 @@ function renderScene() {
     }
   }
 
-  // 3. SPRITES (ORDENADOS POR PROFUNDIDADE)
+  // 3. Sprites com checagem rigorosa de paredes
   renderSprites(w, h);
 
-  // 4. PARTÍCULAS
+  // 4. Partículas
   renderParticles();
 
-  // 5. ARMA EM PRIMEIRA PESSOA
+  // 5. Arma em primeira pessoa
   renderWeapon(w, h);
 }
 
 // ==========================================================================
-// 6. RENDERIZAÇÃO DE SPRITES PROCEDURAIS (PIXEL ART COM ILUMINAÇÃO)
+// 8. RENDERIZAÇÃO DE SPRITES SEM VAZAMENTO ATRAVÉS DE PAREDES
 // ==========================================================================
 function renderSprites(w, h) {
   const drawableEntities = [...entities];
@@ -1877,6 +2370,12 @@ function renderSprites(w, h) {
   });
 
   for (let ent of drawableEntities) {
+    // PROTEÇÃO TOTAL CONTRA VISÃO POR TRÁS DE PAREDES:
+    // Se não há linha de visão desobstruída do jogador até o objeto, ELE NUNCA É DESENHADO!
+    if (!hasLineOfSight(player.x, player.y, ent.x, ent.y)) {
+      continue;
+    }
+
     const spriteX = ent.x - player.x;
     const spriteY = ent.y - player.y;
 
@@ -1895,10 +2394,9 @@ function renderSprites(w, h) {
     const drawStartX = Math.max(0, -spriteWidth / 2 + spriteScreenX);
     const drawEndX = Math.min(w - 1, spriteWidth / 2 + spriteScreenX);
 
-    // Seleção de variação de luz com base na distância
     let lightIdx = 0;
-    if (transformY > 9.0) lightIdx = 2;
-    else if (transformY > 5.0) lightIdx = 1;
+    if (transformY > 10.0) lightIdx = 2;
+    else if (transformY > 6.0) lightIdx = 1;
 
     // Projéteis
     if (ent instanceof Projectile) {
@@ -1906,7 +2404,7 @@ function renderSprites(w, h) {
       continue;
     }
 
-    // Identificação da textura do sprite
+    // Textura do Sprite
     let spriteTex = null;
     if (ent instanceof Alien) {
       if (ent.isDead) {
@@ -1922,13 +2420,12 @@ function renderSprites(w, h) {
 
     if (!spriteTex) continue;
 
-    // Fog sci-fi de profundidade no sprite
     const spriteFog = Math.min(1.0, transformY / CONFIG.maxFogDist);
 
-    // Desenho slice a slice respeitando o Z-Buffer
+    // Desenho slice a slice respeitando o Z-Buffer com epsilon de segurança
     for (let stripe = drawStartX; stripe < drawEndX; stripe++) {
       if (stripe < 0 || stripe >= CONFIG.viewWidth) continue;
-      if (transformY >= zBuffer[stripe]) continue;
+      if (transformY >= zBuffer[stripe] - 0.02) continue; // Ocluído perfeitamente por parede!
 
       const texX = Math.floor((stripe - (spriteScreenX - spriteWidth / 2)) * 64 / spriteWidth);
       if (texX >= 0 && texX < 64) {
@@ -1954,15 +2451,15 @@ function drawProjectileSprite(proj, screenX, startY, sh, dist) {
 
   let visible = false;
   for (let s = px; s < px + size; s++) {
-    if (s >= 0 && s < CONFIG.viewWidth && dist < zBuffer[s]) {
+    if (s >= 0 && s < CONFIG.viewWidth && dist < zBuffer[s] - 0.02) {
       visible = true;
       break;
     }
   }
 
   if (visible && px >= 0 && px < CONFIG.viewWidth) {
-    ctx.fillStyle = proj.isPlayer ? '#00ffff' : '#33ff33';
-    ctx.shadowColor = proj.isPlayer ? '#00ffff' : '#33ff33';
+    ctx.fillStyle = proj.color;
+    ctx.shadowColor = proj.color;
     ctx.shadowBlur = 8;
     ctx.fillRect(px, py, size, size);
     ctx.fillStyle = '#ffffff';
@@ -1973,6 +2470,8 @@ function drawProjectileSprite(proj, screenX, startY, sh, dist) {
 
 function renderParticles() {
   for (let p of particles) {
+    if (!hasLineOfSight(player.x, player.y, p.x, p.y)) continue;
+
     const spriteX = p.x - player.x;
     const spriteY = p.y - player.y;
 
@@ -1992,7 +2491,7 @@ function renderParticles() {
 }
 
 // ==========================================================================
-// 7. ARMA DO JOGADOR EM PRIMEIRA PESSOA (PLASMA RIFLE / DOOM STYLE)
+// 9. RENDERIZAÇÃO DAS DUAS ARMAS EM PRIMEIRA PESSOA
 // ==========================================================================
 function renderWeapon(w, h) {
   let bobX = 0;
@@ -2004,64 +2503,132 @@ function renderWeapon(w, h) {
 
   let recoilY = 0;
   if (player.weaponState === 'firing') {
-    recoilY = 16;
+    const curWep = WEAPONS[player.currentWeapon];
+    recoilY = curWep.recoilAmount;
   }
-
-  const gunWidth = 140;
-  const gunHeight = 110;
-  const gunX = (w / 2) - (gunWidth / 2) + bobX;
-  const gunY = h - gunHeight + bobY + recoilY;
 
   ctx.save();
 
-  // Muzzle Flash
-  if (player.weaponState === 'firing') {
-    ctx.fillStyle = '#00ffff';
-    ctx.shadowColor = '#00ffff';
-    ctx.shadowBlur = 24;
-    ctx.beginPath();
-    ctx.arc(w / 2 + bobX, gunY - 10, 28, 0, Math.PI * 2);
-    ctx.fill();
+  if (player.currentWeapon === 1) {
+    // --- ARMA 1: CANHÃO MAGNÉTICO (SEMI-AUTOMÁTICO PESADO) ---
+    const gunWidth = 150;
+    const gunHeight = 115;
+    const gunX = (w / 2) - (gunWidth / 2) + bobX;
+    const gunY = h - gunHeight + bobY + recoilY;
 
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.arc(w / 2 + bobX, gunY - 10, 14, 0, Math.PI * 2);
-    ctx.fill();
+    // Muzzle Flash Laranja e Descarga Magnética
+    if (player.weaponState === 'firing') {
+      ctx.fillStyle = '#ff7700';
+      ctx.shadowColor = '#ffaa00';
+      ctx.shadowBlur = 32;
+      ctx.beginPath();
+      ctx.arc(w / 2 + bobX, gunY - 14, 34, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(w / 2 + bobX, gunY - 14, 16, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // Chassi blindado de titânio escuro
+    ctx.fillStyle = '#181f26';
+    ctx.fillRect(gunX + 20, gunY + 25, 110, 85);
+    ctx.fillStyle = '#2b3644';
+    ctx.fillRect(gunX + 30, gunY + 35, 90, 65);
+
+    // Trilhos duplos magnéticos (Gauss rails)
+    ctx.fillStyle = '#0f141a';
+    ctx.fillRect(gunX + 46, gunY - 6, 22, 46);
+    ctx.fillRect(gunX + 82, gunY - 6, 22, 46);
+
+    // Bobinas de indução eletromagnética douradas/laranja
+    ctx.fillStyle = '#ff9900';
+    ctx.shadowColor = '#ff6600';
+    ctx.shadowBlur = 12;
+    for (let by = gunY + 4; by < gunY + 34; by += 8) {
+      ctx.fillRect(gunX + 50, by, 14, 4);
+      ctx.fillRect(gunX + 86, by, 14, 4);
+    }
     ctx.shadowBlur = 0;
+
+    // Núcleo de fusão central incandescente
+    ctx.fillStyle = '#0a1018';
+    ctx.fillRect(gunX + 60, gunY + 44, 30, 20);
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(gunX + 65, gunY + 49, 20, 10);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(gunX + 71, gunY + 52, 8, 4);
+
+    // Display digital da arma
+    ctx.fillStyle = '#080d14';
+    ctx.fillRect(gunX + 56, gunY + 70, 38, 14);
+    ctx.fillStyle = '#ff9900';
+    ctx.font = 'bold 9px monospace';
+    ctx.fillText("MAG-SEMI", gunX + 59, gunY + 81);
+
+  } else {
+    // --- ARMA 2: FUZIL DE PLASMA (AUTOMÁTICO CONTÍNUO) ---
+    const gunWidth = 125;
+    const gunHeight = 105;
+    const gunX = (w / 2) - (gunWidth / 2) + bobX;
+    const gunY = h - gunHeight + bobY + recoilY;
+
+    // Muzzle flash azul/ciano rápido
+    if (player.weaponState === 'firing') {
+      ctx.fillStyle = '#00ffff';
+      ctx.shadowColor = '#00e5ff';
+      ctx.shadowBlur = 20;
+      ctx.beginPath();
+      ctx.arc(w / 2 + bobX, gunY - 8, 22, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(w / 2 + bobX, gunY - 8, 10, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // Chassi compacto e angular estilo SMG/Pulse Rifle
+    ctx.fillStyle = '#12161c';
+    ctx.fillRect(gunX + 24, gunY + 22, 78, 80);
+    ctx.fillStyle = '#222c38';
+    ctx.fillRect(gunX + 32, gunY + 30, 62, 65);
+
+    // Cano único aerodinâmico com dispersores laterais
+    ctx.fillStyle = '#0a0d12';
+    ctx.fillRect(gunX + 52, gunY - 4, 22, 34);
+
+    // Emissor de plasma ciano neon
+    ctx.fillStyle = '#00e5ff';
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 10;
+    ctx.fillRect(gunX + 56, gunY + 4, 14, 18);
+    ctx.shadowBlur = 0;
+
+    // Grade de ventilação / dissipador térmico
+    ctx.fillStyle = '#080c10';
+    ctx.fillRect(gunX + 38, gunY + 45, 50, 16);
+    ctx.fillStyle = '#00ff88';
+    for (let gx = gunX + 42; gx < gunX + 84; gx += 8) {
+      ctx.fillRect(gx, gunY + 48, 4, 10);
+    }
+
+    // Display digital da arma
+    ctx.fillStyle = '#060a10';
+    ctx.fillRect(gunX + 46, gunY + 68, 34, 13);
+    ctx.fillStyle = '#00e5ff';
+    ctx.font = 'bold 9px monospace';
+    ctx.fillText("PULSE-SMG", gunX + 48, gunY + 78);
   }
-
-  // Chassi de titânio escuro
-  ctx.fillStyle = '#1c222b';
-  ctx.fillRect(gunX + 25, gunY + 20, 90, 90);
-
-  ctx.fillStyle = '#313d4e';
-  ctx.fillRect(gunX + 35, gunY + 30, 70, 70);
-
-  // Canos duplos de plasma
-  ctx.fillStyle = '#0f141a';
-  ctx.fillRect(gunX + 50, gunY, 18, 40);
-  ctx.fillRect(gunX + 72, gunY, 18, 40);
-
-  // Bobinas de plasma azul neon
-  ctx.fillStyle = '#00e5ff';
-  ctx.shadowColor = '#00e5ff';
-  ctx.shadowBlur = 10;
-  ctx.fillRect(gunX + 54, gunY + 12, 10, 24);
-  ctx.fillRect(gunX + 76, gunY + 12, 10, 24);
-  ctx.shadowBlur = 0;
-
-  // Display digital de munição na arma
-  ctx.fillStyle = '#0a1018';
-  ctx.fillRect(gunX + 56, gunY + 54, 28, 14);
-  ctx.fillStyle = player.ammo <= 15 ? '#ff3333' : '#00ff88';
-  ctx.font = 'bold 11px monospace';
-  ctx.fillText(player.ammo.toString().padStart(2, '0'), gunX + 63, gunY + 65);
 
   ctx.restore();
 }
 
 // ==========================================================================
-// 8. RADAR / MINIMAPA E ROSTO DO MARINE (HUD DINÂMICO)
+// 10. RADAR / MOTION TRACKER E ROSTO DO MARINE (HUD DINÂMICO)
 // ==========================================================================
 const radarCanvas = document.getElementById('radarCanvas');
 const radarCtx = radarCanvas.getContext('2d');
@@ -2073,13 +2640,13 @@ function updateRadar() {
 
   const cx = rw / 2;
   const cy = rh / 2;
-  const radarScale = 5.5;
+  const radarScale = 4.8;
+  const viewRange = 12;
 
-  const viewRange = 10;
   const px = Math.floor(player.x);
   const py = Math.floor(player.y);
 
-  radarCtx.fillStyle = 'rgba(0, 255, 136, 0.25)';
+  radarCtx.fillStyle = 'rgba(0, 255, 136, 0.22)';
   for (let dy = -viewRange; dy <= viewRange; dy++) {
     for (let dx = -viewRange; dx <= viewRange; dx++) {
       const mx = px + dx;
@@ -2094,11 +2661,11 @@ function updateRadar() {
     }
   }
 
-  // Pontos de aliens no radar (apenas detectados se houver linha de visão direta, sem paredes no caminho)
+  // Pontos de aliens no radar (SOMENTE detectados com linha de visão direta!)
   for (let ent of entities) {
     if (ent instanceof Alien && !ent.isDead) {
       if (!hasLineOfSight(player.x, player.y, ent.x, ent.y)) {
-        continue; // Não detecta inimigos através de paredes ou portas fechadas
+        continue; // NUNCA aparece no radar através de paredes!
       }
       const ex = cx + (ent.x - player.x) * radarScale;
       const ey = cy + (ent.y - player.y) * radarScale;
@@ -2175,10 +2742,23 @@ function updateMarineFace() {
 }
 
 // ==========================================================================
-// 9. CONTROLES DO JOGADOR, MOUSE POINTER LOCK E INPUT
+// 11. CONTROLES DO JOGADOR, DISPAROS E TROCA DE ARMAS
 // ==========================================================================
 const keys = {};
 let isMouseDown = false;
+
+function setWeapon(id) {
+  if (WEAPONS[id]) {
+    player.currentWeapon = id;
+    player.fireCooldown = 0.1;
+    updateHUD();
+  }
+}
+
+function switchWeapon() {
+  const nextId = player.currentWeapon === 1 ? 2 : 1;
+  setWeapon(nextId);
+}
 
 function requestLock() {
   try {
@@ -2203,10 +2783,29 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'KeyM' || e.key === 'm' || e.key === 'M') {
     sounds.muted = !sounds.muted;
   }
+
+  // Teclas de seleção de armas
+  if (e.code === 'Digit1' || e.key === '1') {
+    setWeapon(1);
+  } else if (e.code === 'Digit2' || e.key === '2') {
+    setWeapon(2);
+  } else if (e.code === 'KeyQ' || e.key === 'q' || e.key === 'Q') {
+    switchWeapon();
+  }
+
   if ((e.code === 'Space' || e.key === ' ') && gameState === 'PLAYING') {
     e.preventDefault();
-    shootWeapon();
+    if (player.currentWeapon === 1) {
+      // Semi-automático: só dispara no pressionamento inicial
+      if (player.canShootSemi) {
+        shootCurrentWeapon();
+        player.canShootSemi = false;
+      }
+    } else {
+      shootCurrentWeapon();
+    }
   }
+
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
     if (gameState === 'PLAYING') {
       e.preventDefault();
@@ -2221,10 +2820,14 @@ window.addEventListener('keyup', (e) => {
     keys[e.key.toLowerCase()] = false;
     keys[e.key.toUpperCase()] = false;
   }
+  if (e.code === 'Space' || e.key === ' ') {
+    player.canShootSemi = true;
+  }
 });
 
 window.addEventListener('blur', () => {
   isMouseDown = false;
+  player.canShootSemi = true;
   for (const k in keys) {
     keys[k] = false;
   }
@@ -2237,17 +2840,37 @@ canvas.addEventListener('click', () => {
   }
 });
 
+window.addEventListener('wheel', (e) => {
+  if (gameState === 'PLAYING') {
+    switchWeapon();
+  }
+});
+
+document.getElementById('btnSwitchWeapon').addEventListener('click', () => {
+  if (gameState === 'PLAYING') {
+    switchWeapon();
+  }
+});
+
 window.addEventListener('mousedown', (e) => {
   if (e.button === 0 && gameState === 'PLAYING') {
     isMouseDown = true;
     sounds.init();
-    shootWeapon();
+    if (player.currentWeapon === 1) {
+      if (player.canShootSemi) {
+        shootCurrentWeapon();
+        player.canShootSemi = false;
+      }
+    } else {
+      shootCurrentWeapon();
+    }
   }
 });
 
 window.addEventListener('mouseup', (e) => {
   if (e.button === 0) {
     isMouseDown = false;
+    player.canShootSemi = true;
   }
 });
 
@@ -2259,8 +2882,6 @@ document.addEventListener('pointerlockchange', () => {
     prompt.style.display = 'block';
   }
 });
-
-document.addEventListener('pointerlockerror', () => {});
 
 window.addEventListener('mousemove', (e) => {
   if (document.pointerLockElement === canvas && gameState === 'PLAYING') {
@@ -2280,7 +2901,6 @@ function rotatePlayer(angle) {
   player.planeX = player.planeX * cos - player.planeY * sin;
   player.planeY = oldPlaneX * sin + player.planeY * cos;
 
-  // Normalização vetorial periódica contra drift numérico
   const dirLen = Math.hypot(player.dirX, player.dirY);
   if (dirLen > 0) {
     player.dirX /= dirLen;
@@ -2294,22 +2914,39 @@ function rotatePlayer(angle) {
   }
 }
 
-function shootWeapon() {
-  if (player.fireCooldown > 0 || player.ammo <= 0) return;
+// Disparo da Arma Selecionada
+function shootCurrentWeapon() {
+  const wep = WEAPONS[player.currentWeapon];
+  if (player.fireCooldown > 0 || player.ammo < wep.ammoCost) return;
 
-  player.ammo--;
+  player.ammo -= wep.ammoCost;
   player.shotsFired++;
   player.weaponState = 'firing';
-  player.weaponTimer = 0.16;
-  player.fireCooldown = 0.18; // Cadência de 5.5 disparos por segundo
+  player.weaponTimer = 0.12;
+  player.fireCooldown = wep.fireCooldown;
   player.faceReaction = 'shooting';
-  sounds.playLaser();
+
+  if (wep.id === 1) {
+    sounds.playHeavyCannon();
+  } else {
+    sounds.playRapidPlasma();
+  }
   updateHUD();
 
-  entities.push(new Projectile(player.x + player.dirX * 0.3, player.y + player.dirY * 0.3, player.dirX, player.dirY, true));
+  // Criação visual de projétil
+  const projColor = wep.id === 1 ? '#ffaa00' : '#00ffff';
+  entities.push(new Projectile(
+    player.x + player.dirX * 0.35,
+    player.y + player.dirY * 0.35,
+    player.dirX,
+    player.dirY,
+    true,
+    projColor,
+    wep.damage
+  ));
 
-  // Hitscan
-  let hitDist = 20;
+  // Hitscan instantâneo preciso
+  let hitDist = 24;
   let targetAlien = null;
 
   for (let ent of entities) {
@@ -2317,10 +2954,10 @@ function shootWeapon() {
       const toAlienX = ent.x - player.x;
       const toAlienY = ent.y - player.y;
       const dist = Math.hypot(toAlienX, toAlienY);
-      
+
       const dot = (toAlienX * player.dirX + toAlienY * player.dirY) / dist;
-      if (dot > 0.94 && dist < hitDist) {
-        if (ent.checkLineOfSight ? ent.checkLineOfSight(player.x, player.y) : isEntityVisible(player, ent)) {
+      if (dot > 0.93 && dist < hitDist) {
+        if (hasLineOfSight(player.x, player.y, ent.x, ent.y)) {
           hitDist = dist;
           targetAlien = ent;
         }
@@ -2329,7 +2966,7 @@ function shootWeapon() {
   }
 
   if (targetAlien) {
-    targetAlien.takeDamage(35);
+    targetAlien.takeDamage(wep.damage);
   }
 }
 
@@ -2338,16 +2975,18 @@ function updatePlayer(dt) {
   const isDown = keys['KeyS'] || keys['s'] || keys['S'] || keys['ArrowDown'];
   const isLeft = keys['KeyA'] || keys['a'] || keys['A'];
   const isRight = keys['KeyD'] || keys['d'] || keys['D'];
-  const isRotLeft = keys['ArrowLeft'] || keys['KeyQ'] || keys['q'] || keys['Q'];
-  const isRotRight = keys['ArrowRight'] || keys['KeyE'] || keys['e'] || keys['E'];
+  const isRotLeft = keys['ArrowLeft'];
+  const isRotRight = keys['ArrowRight'];
 
   if (isRotLeft) rotatePlayer(-CONFIG.rotSpeed * dt);
   if (isRotRight) rotatePlayer(CONFIG.rotSpeed * dt);
 
-  // Fogo contínuo ao segurar botão esquerdo do mouse ou barra de espaço
-  if (isMouseDown || keys['Space'] || keys[' ']) {
-    if (player.fireCooldown <= 0 && player.ammo > 0) {
-      shootWeapon();
+  // Fogo Contínuo EXCLUSIVO da Arma 2 (Fuzil de Plasma Automático)
+  if (player.currentWeapon === 2) {
+    if (isMouseDown || keys['Space'] || keys[' ']) {
+      if (player.fireCooldown <= 0 && player.ammo >= WEAPONS[2].ammoCost) {
+        shootCurrentWeapon();
+      }
     }
   }
 
@@ -2382,7 +3021,6 @@ function updatePlayer(dt) {
     const origX = player.x;
     const origY = player.y;
 
-    // Deslizamento seguro e suave contra quinas e paredes
     if (canMoveTo(nextX, nextY)) {
       player.x = nextX;
       player.y = nextY;
@@ -2398,7 +3036,6 @@ function updatePlayer(dt) {
     player.isMoving = false;
   }
 
-  // Cooldowns
   if (player.fireCooldown > 0) {
     player.fireCooldown -= dt;
   }
@@ -2420,24 +3057,27 @@ function updatePlayer(dt) {
 }
 
 // ==========================================================================
-// 10. MÁQUINA DE ESTADOS DO JOGO (MENU, JOGO, VITÓRIA, DERROTA)
+// 12. MÁQUINA DE ESTADOS DO JOGO & RELATÓRIO DE MORTE
 // ==========================================================================
 let gameState = 'MENU';
 let gameStartTime = 0;
 let gameEndTime = 0;
 
 function initLevel() {
-  player.x = 2.0;
-  player.y = 1.5;
-  player.dirX = 1.0;
-  player.dirY = 0.0;
-  player.planeX = 0.0;
-  player.planeY = 0.66;
+  player.x = 23.5;
+  player.y = 23.5;
+  player.dirX = 0.0;
+  player.dirY = -1.0;
+  player.planeX = 0.66;
+  player.planeY = 0.0;
   player.health = 100;
-  player.ammo = 65;
+  player.maxHealth = 100;
+  player.ammo = 120;
   player.score = 0;
   player.kills = 0;
   player.shotsFired = 0;
+  player.currentWeapon = 1;
+  player.canShootSemi = true;
   player.weaponState = 'idle';
   player.faceReaction = 'normal';
   player.fireCooldown = 0;
@@ -2451,119 +3091,58 @@ function initLevel() {
   entities = [];
   particles = [];
 
-  // Posições dos 12 Alienígenas (todos em corredores e áreas livres testadas)
-  const alienSpawns = [
-    { x: 7.5, y: 3.5, type: 'stalker' },
-    { x: 13.5, y: 3.5, type: 'stalker' },
-    { x: 22.5, y: 3.5, type: 'spitter' },
-    { x: 4.5, y: 7.5, type: 'phantom' },
-    { x: 17.5, y: 6.5, type: 'stalker' },
-    { x: 4.5, y: 13.5, type: 'stalker' },
-    { x: 10.5, y: 10.5, type: 'spitter' },
-    { x: 16.5, y: 13.5, type: 'spitter' },
-    { x: 22.5, y: 13.5, type: 'phantom' },
-    { x: 7.5, y: 19.5, type: 'stalker' },
-    { x: 16.5, y: 18.5, type: 'spitter' },
-    { x: 13.5, y: 22.5, type: 'brute' }
-  ];
-
-  alienSpawns.forEach(s => {
-    entities.push(new Alien(s.x, s.y, s.type));
-  });
-
-  // Suprimentos
-  const pickupSpawns = [
-    { x: 2.5, y: 4.5, type: 'ammo' },
-    { x: 12.5, y: 2.5, type: 'ammo' },
-    { x: 18.5, y: 3.5, type: 'health' },
-    { x: 2.5, y: 10.5, type: 'health' },
-    { x: 22.5, y: 10.5, type: 'ammo' },
-    { x: 10.5, y: 16.5, type: 'ammo' },
-    { x: 2.5, y: 22.5, type: 'health' },
-    { x: 17.5, y: 22.5, type: 'ammo' }
-  ];
-
-  pickupSpawns.forEach(p => {
-    entities.push(new Pickup(p.x, p.y, p.type));
-  });
-
   gameStartTime = performance.now();
-  updateHUD();
+  hordeManager.startWave(1);
 }
 
 function updateHUD() {
   const hpEl = document.getElementById('hudHealth');
   hpEl.textContent = `${Math.ceil(player.health)}%`;
-  if (player.health <= 25) {
-    hpEl.classList.add('danger');
-  } else {
-    hpEl.classList.remove('danger');
-  }
+  if (player.health <= 25) hpEl.classList.add('danger');
+  else hpEl.classList.remove('danger');
 
   const ammoEl = document.getElementById('hudAmmo');
   ammoEl.textContent = player.ammo;
-  if (player.ammo <= 15) {
-    ammoEl.classList.add('danger');
-  } else {
-    ammoEl.classList.remove('danger');
-  }
+  if (player.ammo <= 20) ammoEl.classList.add('danger');
+  else ammoEl.classList.remove('danger');
 
-  const aliveAliens = entities.filter(e => e instanceof Alien && !e.isDead).length;
-  document.getElementById('hudKills').textContent = aliveAliens;
+  // Atualiza Horda no HUD (substitui o antigo contador de inimigos restantes)
+  document.getElementById('hudWave').textContent = hordeManager.currentWave;
+
+  // Atualiza Arma selecionada no HUD
+  const curWep = WEAPONS[player.currentWeapon];
+  const wepEl = document.getElementById('hudWeapon');
+  wepEl.textContent = curWep.label;
+  wepEl.style.color = curWep.id === 1 ? '#ffaa00' : '#00e5ff';
+
   document.getElementById('hudScore').textContent = player.score.toString().padStart(4, '0');
 
+  // Atualiza banner superior sem revelar quantidade de inimigos restantes!
   const banner = document.getElementById('missionText');
-  if (aliveAliens > 0) {
-    banner.textContent = `PURGAR ${aliveAliens} ENTIDADES XENOMORFAS RESTANTES`;
+  if (hordeManager.waveState === 'ACTIVE') {
+    banner.textContent = `HORDA ${hordeManager.currentWave} // SOBREVIVA AO ATAQUE XENOMORFO`;
     banner.style.color = '#00ff88';
-  } else {
-    banner.textContent = `SETOR PURGADO! TODOS OS XENOMORFAS FORAM EXTERMINADOS!`;
-    banner.style.color = '#33ffff';
   }
 
   updateMarineFace();
 }
 
-function checkVictoryCondition() {
-  const aliveAliens = entities.filter(e => e instanceof Alien && !e.isDead).length;
-  if (aliveAliens === 0) {
-    updateHUD();
-    setTimeout(() => {
-      if (gameState === 'PLAYING') {
-        triggerVictory();
-      }
-    }, 700);
-  }
-}
-
+// Tela de Morte detalhada com tempo de sobrevivência e monstros mortos
 function triggerGameOver() {
   gameState = 'GAMEOVER';
   gameEndTime = performance.now();
   if (document.exitPointerLock) document.exitPointerLock();
 
   const elapsedSec = Math.floor((gameEndTime - gameStartTime) / 1000);
-  document.getElementById('statKillsDefeat').textContent = player.kills;
-  document.getElementById('statTimeDefeat').textContent = `${elapsedSec}s`;
-
-  document.getElementById('gameOverScreen').classList.remove('hidden');
-}
-
-function triggerVictory() {
-  gameState = 'VICTORY';
-  gameEndTime = performance.now();
-  sounds.playWinFanfare();
-  if (document.exitPointerLock) document.exitPointerLock();
-
-  const elapsedSec = Math.floor((gameEndTime - gameStartTime) / 1000);
   const minutes = Math.floor(elapsedSec / 60).toString().padStart(2, '0');
   const seconds = (elapsedSec % 60).toString().padStart(2, '0');
 
-  document.getElementById('statTimeWin').textContent = `${minutes}:${seconds}`;
-  document.getElementById('statKillsWin').textContent = `${player.kills} / 12 (100%)`;
-  document.getElementById('statShotsWin').textContent = player.shotsFired;
-  document.getElementById('statScoreWin').textContent = player.score + (player.health * 10);
+  document.getElementById('statTimeDefeat').textContent = `${minutes}:${seconds} (${elapsedSec}s)`;
+  document.getElementById('statKillsDefeat').textContent = `${player.kills} XENOMORFOS`;
+  document.getElementById('statWaveDefeat').textContent = `HORDA ${hordeManager.currentWave}`;
+  document.getElementById('statScoreDefeat').textContent = player.score;
 
-  document.getElementById('victoryScreen').classList.remove('hidden');
+  document.getElementById('gameOverScreen').classList.remove('hidden');
 }
 
 // Botões das Telas Modais
@@ -2582,18 +3161,9 @@ document.getElementById('btnRestartMission').addEventListener('click', () => {
   requestLock();
 });
 
-document.getElementById('btnPlayAgain').addEventListener('click', () => {
-  document.getElementById('victoryScreen').classList.add('hidden');
-  initLevel();
-  gameState = 'PLAYING';
-  requestLock();
-});
-
 // ==========================================================================
-// 11. LOOP PRINCIPAL DE EXECUÇÃO (60 FPS REQUEST ANIMATION FRAME)
+// 13. LOOP PRINCIPAL DE EXECUÇÃO (60 FPS REQUEST ANIMATION FRAME)
 // ==========================================================================
-initLevel(); // Inicializa dados do mapa e entidades
-
 let lastTime = performance.now();
 
 function gameLoop(now) {
@@ -2602,6 +3172,7 @@ function gameLoop(now) {
 
   if (gameState === 'PLAYING') {
     updatePlayer(dt);
+    hordeManager.update(dt);
 
     for (let i = entities.length - 1; i >= 0; i--) {
       entities[i].update(dt);
@@ -2622,7 +3193,6 @@ function gameLoop(now) {
     renderScene();
     updateRadar();
   } else if (gameState === 'MENU') {
-    // Rotação suave da câmera no menu inicial para demo visual 3D
     rotatePlayer(0.35 * dt);
     renderScene();
     updateRadar();
