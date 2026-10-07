@@ -435,7 +435,9 @@
 
     <div class="info-card">
       <h4>// PROTOCOLOS DE COMBATE (CONTROLES)</h4>
-      • <span class="key-badge">W</span> <span class="key-badge">A</span> <span class="key-badge">S</span> <span class="key-badge">D</span> ou <span class="key-badge">SETAS</span>: Mover-se pelos corredores.<br>
+      • <span class="key-badge">W</span> <span class="key-badge">S</span>: Mover para frente / trás.<br>
+      • <span class="key-badge">A</span> <span class="key-badge">D</span>: Strafe lateral (passo para esquerda / direita).<br>
+      • <span class="key-badge">Q</span> <span class="key-badge">E</span> ou <span class="key-badge">SETAS</span>: Girar câmera (ou use o Mouse).<br>
       • <span class="key-badge">MOUSE</span>: Olhar em 360° com captura de mira.<br>
       • <span class="key-badge">CLIQUE ESQUERDO</span> ou <span class="key-badge">ESPAÇO</span>: Disparar Blaster de Plasma.<br>
       • <span class="key-badge">M</span>: Ativar / Silenciar efeitos sonoros.<br>
@@ -1392,7 +1394,7 @@ function getMapCell(x, y) {
 
 // Verificação de colisão segura em caixa delimitadora
 function canMoveTo(nx, ny) {
-  const r = 0.28;
+  const r = 0.22;
   return getMapCell(nx - r, ny - r) === 0 &&
          getMapCell(nx + r, ny - r) === 0 &&
          getMapCell(nx - r, ny + r) === 0 &&
@@ -1432,8 +1434,8 @@ function isEntityVisible(p, ent) {
 // 4. ENTIDADES: JOGADOR, ALIENÍGENAS, PROJÉTEIS E PICKUPS
 // ==========================================================================
 const player = {
-  x: 2.5,
-  y: 2.5,
+  x: 2.0,
+  y: 1.5,
   dirX: 1.0,
   dirY: 0.0,
   planeX: 0.0,
@@ -1531,8 +1533,15 @@ class Alien {
         const moveX = (dx / dist) * moveStep;
         const moveY = (dy / dist) * moveStep;
 
-        if (canMoveTo(this.x + moveX, this.y)) this.x += moveX;
-        if (canMoveTo(this.x, this.y + moveY)) this.y += moveY;
+        const curX = this.x;
+        const curY = this.y;
+        if (canMoveTo(this.x + moveX, this.y + moveY)) {
+          this.x += moveX;
+          this.y += moveY;
+        } else {
+          if (canMoveTo(this.x + moveX, curY)) this.x += moveX;
+          if (canMoveTo(curX, this.y + moveY)) this.y += moveY;
+        }
       }
 
       // Ataques específicos por classe
@@ -1544,6 +1553,10 @@ class Alien {
         this.attackPlayerRanged(dx, dy, dist);
       }
     }
+  }
+
+  checkLineOfSight(px, py) {
+    return isEntityVisible({ x: px, y: py }, this);
   }
 
   attackPlayerMelee() {
@@ -1693,16 +1706,19 @@ function spawnSparks(x, y, color, count = 5) {
 }
 
 function damagePlayer(amount) {
+  if (gameState !== 'PLAYING') return;
   player.health = Math.max(0, player.health - amount);
   player.painTimer = 0.3;
   player.faceReaction = 'hurt';
   sounds.playPlayerHurt();
 
   const flash = document.getElementById('damageFlash');
-  flash.style.backgroundColor = 'rgba(255, 0, 0, 0.45)';
-  setTimeout(() => {
-    flash.style.backgroundColor = 'rgba(255, 0, 0, 0)';
-  }, 120);
+  if (flash) {
+    flash.style.backgroundColor = 'rgba(255, 0, 0, 0.45)';
+    setTimeout(() => {
+      if (flash) flash.style.backgroundColor = 'rgba(255, 0, 0, 0)';
+    }, 120);
+  }
 
   updateHUD();
 
@@ -2164,26 +2180,59 @@ function updateMarineFace() {
 const keys = {};
 let isMouseDown = false;
 
+function requestLock() {
+  try {
+    const fn = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+    if (fn) {
+      const res = fn.call(canvas);
+      if (res && typeof res.catch === 'function') {
+        res.catch(() => {});
+      }
+    }
+  } catch (err) {}
+}
+
 window.addEventListener('keydown', (e) => {
   keys[e.code] = true;
+  if (e.key) {
+    keys[e.key] = true;
+    keys[e.key.toLowerCase()] = true;
+    keys[e.key.toUpperCase()] = true;
+  }
 
-  if (e.code === 'KeyM') {
+  if (e.code === 'KeyM' || e.key === 'm' || e.key === 'M') {
     sounds.muted = !sounds.muted;
   }
-  if (e.code === 'Space' && gameState === 'PLAYING') {
+  if ((e.code === 'Space' || e.key === ' ') && gameState === 'PLAYING') {
     e.preventDefault();
     shootWeapon();
+  }
+  if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+    if (gameState === 'PLAYING') {
+      e.preventDefault();
+    }
   }
 });
 
 window.addEventListener('keyup', (e) => {
   keys[e.code] = false;
+  if (e.key) {
+    keys[e.key] = false;
+    keys[e.key.toLowerCase()] = false;
+    keys[e.key.toUpperCase()] = false;
+  }
+});
+
+window.addEventListener('blur', () => {
+  isMouseDown = false;
+  for (const k in keys) {
+    keys[k] = false;
+  }
 });
 
 canvas.addEventListener('click', () => {
   if (gameState === 'PLAYING') {
-    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-    canvas.requestPointerLock();
+    requestLock();
     sounds.init();
   }
 });
@@ -2211,6 +2260,8 @@ document.addEventListener('pointerlockchange', () => {
   }
 });
 
+document.addEventListener('pointerlockerror', () => {});
+
 window.addEventListener('mousemove', (e) => {
   if (document.pointerLockElement === canvas && gameState === 'PLAYING') {
     const rot = e.movementX * CONFIG.mouseSensitivity;
@@ -2219,13 +2270,28 @@ window.addEventListener('mousemove', (e) => {
 });
 
 function rotatePlayer(angle) {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
   const oldDirX = player.dirX;
-  player.dirX = player.dirX * Math.cos(angle) - player.dirY * Math.sin(angle);
-  player.dirY = oldDirX * Math.sin(angle) + player.dirY * Math.cos(angle);
+  player.dirX = player.dirX * cos - player.dirY * sin;
+  player.dirY = oldDirX * sin + player.dirY * cos;
 
   const oldPlaneX = player.planeX;
-  player.planeX = player.planeX * Math.cos(angle) - player.planeY * Math.sin(angle);
-  player.planeY = oldPlaneX * Math.sin(angle) + player.planeY * Math.cos(angle);
+  player.planeX = player.planeX * cos - player.planeY * sin;
+  player.planeY = oldPlaneX * sin + player.planeY * cos;
+
+  // Normalização vetorial periódica contra drift numérico
+  const dirLen = Math.hypot(player.dirX, player.dirY);
+  if (dirLen > 0) {
+    player.dirX /= dirLen;
+    player.dirY /= dirLen;
+  }
+  const planeLen = Math.hypot(player.planeX, player.planeY);
+  if (planeLen > 0) {
+    const targetPlane = 0.66;
+    player.planeX = (player.planeX / planeLen) * targetPlane;
+    player.planeY = (player.planeY / planeLen) * targetPlane;
+  }
 }
 
 function shootWeapon() {
@@ -2254,7 +2320,7 @@ function shootWeapon() {
       
       const dot = (toAlienX * player.dirX + toAlienY * player.dirY) / dist;
       if (dot > 0.94 && dist < hitDist) {
-        if (ent.checkLineOfSight(player.x, player.y)) {
+        if (ent.checkLineOfSight ? ent.checkLineOfSight(player.x, player.y) : isEntityVisible(player, ent)) {
           hitDist = dist;
           targetAlien = ent;
         }
@@ -2267,13 +2333,19 @@ function shootWeapon() {
   }
 }
 
-
 function updatePlayer(dt) {
-  if (keys['ArrowLeft']) rotatePlayer(-CONFIG.rotSpeed * dt);
-  if (keys['ArrowRight']) rotatePlayer(CONFIG.rotSpeed * dt);
+  const isUp = keys['KeyW'] || keys['w'] || keys['W'] || keys['ArrowUp'];
+  const isDown = keys['KeyS'] || keys['s'] || keys['S'] || keys['ArrowDown'];
+  const isLeft = keys['KeyA'] || keys['a'] || keys['A'];
+  const isRight = keys['KeyD'] || keys['d'] || keys['D'];
+  const isRotLeft = keys['ArrowLeft'] || keys['KeyQ'] || keys['q'] || keys['Q'];
+  const isRotRight = keys['ArrowRight'] || keys['KeyE'] || keys['e'] || keys['E'];
 
-  // Fogo contínuo ao segurar botão esquerdo do mouse
-  if (isMouseDown || keys['Space']) {
+  if (isRotLeft) rotatePlayer(-CONFIG.rotSpeed * dt);
+  if (isRotRight) rotatePlayer(CONFIG.rotSpeed * dt);
+
+  // Fogo contínuo ao segurar botão esquerdo do mouse ou barra de espaço
+  if (isMouseDown || keys['Space'] || keys[' ']) {
     if (player.fireCooldown <= 0 && player.ammo > 0) {
       shootWeapon();
     }
@@ -2282,19 +2354,19 @@ function updatePlayer(dt) {
   let moveX = 0;
   let moveY = 0;
 
-  if (keys['KeyW'] || keys['ArrowUp']) {
+  if (isUp) {
     moveX += player.dirX;
     moveY += player.dirY;
   }
-  if (keys['KeyS'] || keys['ArrowDown']) {
+  if (isDown) {
     moveX -= player.dirX;
     moveY -= player.dirY;
   }
-  if (keys['KeyA']) {
+  if (isLeft) {
     moveX += player.dirY;
     moveY -= player.dirX;
   }
-  if (keys['KeyD']) {
+  if (isRight) {
     moveX -= player.dirY;
     moveY += player.dirX;
   }
@@ -2307,17 +2379,24 @@ function updatePlayer(dt) {
     const nextX = player.x + moveX * step;
     const nextY = player.y + moveY * step;
 
-    // Deslizamento seguro contra quinas
-    if (canMoveTo(nextX, player.y)) {
+    const origX = player.x;
+    const origY = player.y;
+
+    // Deslizamento seguro e suave contra quinas e paredes
+    if (canMoveTo(nextX, nextY)) {
       player.x = nextX;
-    }
-    if (canMoveTo(player.x, nextY)) {
       player.y = nextY;
+    } else {
+      if (canMoveTo(nextX, origY)) {
+        player.x = nextX;
+      }
+      if (canMoveTo(origX, nextY)) {
+        player.y = nextY;
+      }
     }
   } else {
     player.isMoving = false;
   }
-
 
   // Cooldowns
   if (player.fireCooldown > 0) {
@@ -2348,8 +2427,8 @@ let gameStartTime = 0;
 let gameEndTime = 0;
 
 function initLevel() {
-  player.x = 2.5;
-  player.y = 2.5;
+  player.x = 2.0;
+  player.y = 1.5;
   player.dirX = 1.0;
   player.dirY = 0.0;
   player.planeX = 0.0;
@@ -2362,24 +2441,30 @@ function initLevel() {
   player.weaponState = 'idle';
   player.faceReaction = 'normal';
   player.fireCooldown = 0;
+  player.painTimer = 0;
+  player.bobbingTimer = 0;
+  player.isMoving = false;
+
+  const flash = document.getElementById('damageFlash');
+  if (flash) flash.style.backgroundColor = 'rgba(255, 0, 0, 0)';
 
   entities = [];
   particles = [];
 
-  // Posições dos 12 Alienígenas
+  // Posições dos 12 Alienígenas (todos em corredores e áreas livres testadas)
   const alienSpawns = [
-    { x: 7.5, y: 2.5, type: 'stalker' },
+    { x: 7.5, y: 3.5, type: 'stalker' },
     { x: 13.5, y: 3.5, type: 'stalker' },
     { x: 22.5, y: 3.5, type: 'spitter' },
-    { x: 4.5, y: 7.5, type: 'stalker' },
+    { x: 4.5, y: 7.5, type: 'phantom' },
     { x: 17.5, y: 6.5, type: 'stalker' },
     { x: 4.5, y: 13.5, type: 'stalker' },
     { x: 10.5, y: 10.5, type: 'spitter' },
-    { x: 14.5, y: 14.5, type: 'spitter' },
-    { x: 22.5, y: 13.5, type: 'stalker' },
-    { x: 7.5, y: 18.5, type: 'stalker' },
+    { x: 16.5, y: 13.5, type: 'spitter' },
+    { x: 22.5, y: 13.5, type: 'phantom' },
+    { x: 7.5, y: 19.5, type: 'stalker' },
     { x: 16.5, y: 18.5, type: 'spitter' },
-    { x: 13.5, y: 22.5, type: 'stalker' }
+    { x: 13.5, y: 22.5, type: 'brute' }
   ];
 
   alienSpawns.forEach(s => {
@@ -2487,22 +2572,21 @@ document.getElementById('btnStartMission').addEventListener('click', () => {
   sounds.init();
   initLevel();
   gameState = 'PLAYING';
-  canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
-  canvas.requestPointerLock();
+  requestLock();
 });
 
 document.getElementById('btnRestartMission').addEventListener('click', () => {
   document.getElementById('gameOverScreen').classList.add('hidden');
   initLevel();
   gameState = 'PLAYING';
-  canvas.requestPointerLock();
+  requestLock();
 });
 
 document.getElementById('btnPlayAgain').addEventListener('click', () => {
   document.getElementById('victoryScreen').classList.add('hidden');
   initLevel();
   gameState = 'PLAYING';
-  canvas.requestPointerLock();
+  requestLock();
 });
 
 // ==========================================================================
